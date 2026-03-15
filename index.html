@@ -913,8 +913,12 @@
       <div class="nav-item" onclick="showPage('newquote')"><span class="nav-icon">✏️</span> Yeni Teklif</div>
     </div>
     <div class="nav-section">
+      <div class="nav-label">Yurt İçi</div>
+      <div class="nav-item" onclick="showPage('domestic')"><span class="nav-icon">🚛</span> Kamyon Takibi</div>
+      <div class="nav-item" onclick="showPage('insurance')"><span class="nav-icon">🛡️</span> Sigorta</div>
       <div class="nav-label">Bilgi & Risk</div>
-      <div class="nav-item" onclick="showPage('fraud')"><span class="nav-icon">⚠️</span> Hile Uyarıları</div>
+      <div class="nav-item" onclick="showPage('fraud')"><span class="nav-icon">⚠️</span> Deniz Hile Uyarıları</div>
+      <div class="nav-item" onclick="showPage('fraud-domestic')"><span class="nav-icon">🚨</span> Kara Hile Uyarıları</div>
       <div class="nav-item" onclick="showPage('decision')"><span class="nav-icon">🎯</span> Karar Destek</div>
       <div class="nav-item" onclick="showPage('messages')"><span class="nav-icon">✉️</span> Müşteri Mesajları</div>
     </div>
@@ -1517,27 +1521,77 @@
           <div class="card">
             <div class="card-title">📋 Fiyatlandırılması İstenen Kalemler</div>
             <div style="display:flex;flex-direction:column;gap:8px" id="rfqItemsList">
-              ${[
-                'Ocean Freight (All-in)',
-                'BAF / Fuel Surcharge',
-                'THC (Origin / Yükleme)',
-                'THC (Destination / Boşaltma)',
-                'B/L Ücreti (Documentation Fee)',
-                'Port Congestion Surcharge',
-                'Reefer Surcharge (varsa)',
-                'IMO / DG Surcharge (varsa)',
-                'Free Time — Origin (Gün)',
-                'Free Time — Destination (Gün)',
-                'Transit Time / TT (Gün) *',
-                'Sefer Sıklığı (Haftalık/2 Haf.)',
-                'Aktarma Limanı (Transshipment)',
-                'Armatör Önerisi *',
-              ].map((item,i) => `
-              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px;transition:background 0.15s;" onmouseover="this.style.background='var(--navy3)'" onmouseout="this.style.background='transparent'">
-                <input type="checkbox" id="rfqItem_${i}" value="${item}" ${item.includes('*')?'checked disabled':item.includes('IMO')||item.includes('Reefer')?'':'checked'} style="width:15px;height:15px;accent-color:var(--accent)">
-                <span style="color:var(--text2);flex:1">${item.replace(' *','')}</span>
-                ${item.includes('*') ? '<span style="font-size:10px;background:rgba(239,68,68,0.15);color:var(--red);padding:2px 6px;border-radius:3px;font-weight:700">ZORUNLU</span>' : ''}
-              </label>`).join('')}
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px;background:transparent" onmouseover="this.style.background='var(--navy3)'" onmouseout="this.style.background='transparent'">
+                <input type="checkbox" id="rfqItem_0" value="Ocean Freight (All-in)" checked style="width:15px;height:15px;accent-color:var(--accent)">
+                <span style="color:var(--text2);flex:1">Ocean Freight (All-in)</span>
+                
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px;background:transparent" onmouseover="this.style.background='var(--navy3)'" onmouseout="this.style.background='transparent'">
+                <input type="checkbox" id="rfqItem_1" value="BAF / Fuel Surcharge" checked style="width:15px;height:15px;accent-color:var(--accent)">
+                <span style="color:var(--text2);flex:1">BAF / Fuel Surcharge</span>
+                
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px;background:transparent" onmouseover="this.style.background='var(--navy3)'" onmouseout="this.style.background='transparent'">
+                <input type="checkbox" id="rfqItem_2" value="THC (Origin / Yükleme)" checked style="width:15px;height:15px;accent-color:var(--accent)">
+                <span style="color:var(--text2);flex:1">THC (Origin / Yükleme)</span>
+                
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px;background:transparent" onmouseover="this.style.background='var(--navy3)'" onmouseout="this.style.background='transparent'">
+                <input type="checkbox" id="rfqItem_3" value="THC (Destination / Boşaltma)" checked style="width:15px;height:15px;accent-color:var(--accent)">
+                <span style="color:var(--text2);flex:1">THC (Destination / Boşaltma)</span>
+                
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px;background:transparent" onmouseover="this.style.background='var(--navy3)'" onmouseout="this.style.background='transparent'">
+                <input type="checkbox" id="rfqItem_4" value="B/L Ücreti (Documentation Fee)" checked style="width:15px;height:15px;accent-color:var(--accent)">
+                <span style="color:var(--text2);flex:1">B/L Ücreti (Documentation Fee)</span>
+                
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px;background:transparent" onmouseover="this.style.background='var(--navy3)'" onmouseout="this.style.background='transparent'">
+                <input type="checkbox" id="rfqItem_5" value="Port Congestion Surcharge" checked style="width:15px;height:15px;accent-color:var(--accent)">
+                <span style="color:var(--text2);flex:1">Port Congestion Surcharge</span>
+                
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px;background:transparent" onmouseover="this.style.background='var(--navy3)'" onmouseout="this.style.background='transparent'">
+                <input type="checkbox" id="rfqItem_6" value="Reefer Surcharge (varsa)"  style="width:15px;height:15px;accent-color:var(--accent)">
+                <span style="color:var(--text2);flex:1">Reefer Surcharge (varsa)</span>
+                
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px;background:transparent" onmouseover="this.style.background='var(--navy3)'" onmouseout="this.style.background='transparent'">
+                <input type="checkbox" id="rfqItem_7" value="IMO / DG Surcharge (varsa)"  style="width:15px;height:15px;accent-color:var(--accent)">
+                <span style="color:var(--text2);flex:1">IMO / DG Surcharge (varsa)</span>
+                
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px;background:transparent" onmouseover="this.style.background='var(--navy3)'" onmouseout="this.style.background='transparent'">
+                <input type="checkbox" id="rfqItem_8" value="Free Time — Origin (Gün)" checked style="width:15px;height:15px;accent-color:var(--accent)">
+                <span style="color:var(--text2);flex:1">Free Time — Origin (Gün)</span>
+                
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px;background:transparent" onmouseover="this.style.background='var(--navy3)'" onmouseout="this.style.background='transparent'">
+                <input type="checkbox" id="rfqItem_9" value="Free Time — Destination (Gün)" checked style="width:15px;height:15px;accent-color:var(--accent)">
+                <span style="color:var(--text2);flex:1">Free Time — Destination (Gün)</span>
+                
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px;background:transparent" onmouseover="this.style.background='var(--navy3)'" onmouseout="this.style.background='transparent'">
+                <input type="checkbox" id="rfqItem_10" value="Transit Time / TT (Gün)" checked disabled style="width:15px;height:15px;accent-color:var(--accent)">
+                <span style="color:var(--text2);flex:1">Transit Time / TT (Gün)</span>
+                <span style="font-size:10px;background:rgba(239,68,68,0.15);color:var(--red);padding:2px 6px;border-radius:3px;font-weight:700">ZORUNLU</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px;background:transparent" onmouseover="this.style.background='var(--navy3)'" onmouseout="this.style.background='transparent'">
+                <input type="checkbox" id="rfqItem_11" value="Sefer Sıklığı (Haftalık/2 Haf.)" checked style="width:15px;height:15px;accent-color:var(--accent)">
+                <span style="color:var(--text2);flex:1">Sefer Sıklığı (Haftalık/2 Haf.)</span>
+                
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px;background:transparent" onmouseover="this.style.background='var(--navy3)'" onmouseout="this.style.background='transparent'">
+                <input type="checkbox" id="rfqItem_12" value="Aktarma Limanı (Transshipment)" checked style="width:15px;height:15px;accent-color:var(--accent)">
+                <span style="color:var(--text2);flex:1">Aktarma Limanı (Transshipment)</span>
+                
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px;background:transparent" onmouseover="this.style.background='var(--navy3)'" onmouseout="this.style.background='transparent'">
+                <input type="checkbox" id="rfqItem_13" value="Armatör Önerisi" checked disabled style="width:15px;height:15px;accent-color:var(--accent)">
+                <span style="color:var(--text2);flex:1">Armatör Önerisi</span>
+                <span style="font-size:10px;background:rgba(239,68,68,0.15);color:var(--red);padding:2px 6px;border-radius:3px;font-weight:700">ZORUNLU</span>
+              </label>
+
             </div>
             <div class="divider" style="margin:12px 0"></div>
             <div style="font-size:11px;color:var(--text3);margin-bottom:8px">+ Özel kalem ekle:</div>
@@ -1698,20 +1752,39 @@
                 <div class="alert-text">Transit Süre (TT) ve Armatör adı her teklifte zorunludur ve değiştirilemez.</div></div>
               </div>
               <div style="display:flex;flex-direction:column;gap:8px" id="mandatoryFieldsList">
-                ${[
-                  {id:'mf_forwarder', label:'Forwarder / Acente'},
-                  {id:'mf_transship', label:'Aktarma Limanı'},
-                  {id:'mf_frequency', label:'Sefer Sıklığı'},
-                  {id:'mf_etd', label:'Tahmini Yükleme Tarihi (ETD)'},
-                  {id:'mf_payment', label:'Ödeme Şartları'},
-                  {id:'mf_includes', label:'Dahil Olan Ücretler'},
-                  {id:'mf_excludes', label:'Dahil Olmayan Ücretler'},
-                  {id:'mf_validity', label:'Teklif Geçerlilik Tarihi'},
-                ].map(f=>`
                 <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:8px 10px;border-radius:6px;background:var(--navy2);border:1px solid var(--border)">
-                  <input type="checkbox" id="${f.id}" style="width:15px;height:15px;accent-color:var(--accent)">
-                  <span style="color:var(--text2)">${f.label}</span>
-                </label>`).join('')}
+                  <input type="checkbox" id="mf_forwarder" style="width:15px;height:15px;accent-color:var(--accent)">
+                  <span style="color:var(--text2)">Forwarder / Acente</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:8px 10px;border-radius:6px;background:var(--navy2);border:1px solid var(--border)">
+                  <input type="checkbox" id="mf_transship" style="width:15px;height:15px;accent-color:var(--accent)">
+                  <span style="color:var(--text2)">Aktarma Limanı</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:8px 10px;border-radius:6px;background:var(--navy2);border:1px solid var(--border)">
+                  <input type="checkbox" id="mf_frequency" style="width:15px;height:15px;accent-color:var(--accent)">
+                  <span style="color:var(--text2)">Sefer Sıklığı</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:8px 10px;border-radius:6px;background:var(--navy2);border:1px solid var(--border)">
+                  <input type="checkbox" id="mf_etd" style="width:15px;height:15px;accent-color:var(--accent)">
+                  <span style="color:var(--text2)">Tahmini Yükleme Tarihi (ETD)</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:8px 10px;border-radius:6px;background:var(--navy2);border:1px solid var(--border)">
+                  <input type="checkbox" id="mf_payment" style="width:15px;height:15px;accent-color:var(--accent)">
+                  <span style="color:var(--text2)">Ödeme Şartları</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:8px 10px;border-radius:6px;background:var(--navy2);border:1px solid var(--border)">
+                  <input type="checkbox" id="mf_includes" style="width:15px;height:15px;accent-color:var(--accent)">
+                  <span style="color:var(--text2)">Dahil Olan Ücretler</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:8px 10px;border-radius:6px;background:var(--navy2);border:1px solid var(--border)">
+                  <input type="checkbox" id="mf_excludes" style="width:15px;height:15px;accent-color:var(--accent)">
+                  <span style="color:var(--text2)">Dahil Olmayan Ücretler</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:8px 10px;border-radius:6px;background:var(--navy2);border:1px solid var(--border)">
+                  <input type="checkbox" id="mf_validity" style="width:15px;height:15px;accent-color:var(--accent)">
+                  <span style="color:var(--text2)">Teklif Geçerlilik Tarihi</span>
+                </label>
+
               </div>
             </div>
             <div style="margin-bottom:12px">
@@ -1751,18 +1824,17 @@
         </div>
         <div style="font-size:11px;color:var(--text3);margin-bottom:8px">📌 Sık kullanılan şartlar (tıklayarak forma ekle):</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
-          ${[
-            ['Teklif; transit süre (TT) ve armatör adını zorunlu içermelidir.','tr'],
-            ['Ocean Freight ve BAF ayrı kalem olarak belirtilmelidir.','tr'],
-            ['Free Time (POL ve POD) ayrı ayrı gün olarak belirtilmelidir.','tr'],
-            ['D&D ücretleri teklife dahil değildir, ayrıca belirtilmelidir.','tr'],
-            ['IMO kargo için DG surcharge ayrı kaleme yazılmalıdır.','tr'],
-            ['Fiyatlar belirtilen geçerlilik tarihine kadar sabit kalmalıdır.','tr'],
-            ['Quote must include Transit Time (TT) and Carrier name.','en'],
-            ['Ocean Freight and BAF must be quoted as separate line items.','en'],
-            ['Free Time at origin and destination must be stated in days.','en'],
-            ['La cotation doit inclure le délai de transit (TT) et le nom de l\'armateur.','fr'],
-          ].map(([t,l])=>`<span class="tag" style="cursor:pointer;font-size:11px" onclick="quickAddClause('${t.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','${l}')" title="${t}">${t.substring(0,42)}${t.length>42?'…':''}</span>`).join('')}
+          <span class="tag" style="cursor:pointer;font-size:11px" onclick="quickAddClause('Teklif; transit süre (TT) ve armatör adını zorunlu içermelidir.','tr')" title="Teklif; transit süre (TT) ve armatör adını zorunlu içermelidir.">Teklif; transit süre (TT) ve armatör adını…</span>
+          <span class="tag" style="cursor:pointer;font-size:11px" onclick="quickAddClause('Ocean Freight ve BAF ayrı kalem olarak belirtilmelidir.','tr')" title="Ocean Freight ve BAF ayrı kalem olarak belirtilmelidir.">Ocean Freight ve BAF ayrı kalem olarak bel…</span>
+          <span class="tag" style="cursor:pointer;font-size:11px" onclick="quickAddClause('Free Time (POL ve POD) ayrı ayrı gün olarak belirtilmelidir.','tr')" title="Free Time (POL ve POD) ayrı ayrı gün olarak belirtilmelidir.">Free Time (POL ve POD) ayrı ayrı gün olara…</span>
+          <span class="tag" style="cursor:pointer;font-size:11px" onclick="quickAddClause('D&D ücretleri teklife dahil değildir, ayrıca belirtilmelidir.','tr')" title="D&D ücretleri teklife dahil değildir, ayrıca belirtilmelidir.">D&D ücretleri teklife dahil değildir, ayrı…</span>
+          <span class="tag" style="cursor:pointer;font-size:11px" onclick="quickAddClause('IMO kargo için DG surcharge ayrı kaleme yazılmalıdır.','tr')" title="IMO kargo için DG surcharge ayrı kaleme yazılmalıdır.">IMO kargo için DG surcharge ayrı kaleme ya…</span>
+          <span class="tag" style="cursor:pointer;font-size:11px" onclick="quickAddClause('Fiyatlar belirtilen geçerlilik tarihine kadar sabit kalmalıdır.','tr')" title="Fiyatlar belirtilen geçerlilik tarihine kadar sabit kalmalıdır.">Fiyatlar belirtilen geçerlilik tarihine ka…</span>
+          <span class="tag" style="cursor:pointer;font-size:11px" onclick="quickAddClause('Quote must include Transit Time (TT) and Carrier name.','en')" title="Quote must include Transit Time (TT) and Carrier name.">Quote must include Transit Time (TT) and C…</span>
+          <span class="tag" style="cursor:pointer;font-size:11px" onclick="quickAddClause('Ocean Freight and BAF must be quoted as separate line items.','en')" title="Ocean Freight and BAF must be quoted as separate line items.">Ocean Freight and BAF must be quoted as se…</span>
+          <span class="tag" style="cursor:pointer;font-size:11px" onclick="quickAddClause('Free Time at origin and destination must be stated in days.','en')" title="Free Time at origin and destination must be stated in days.">Free Time at origin and destination must b…</span>
+          <span class="tag" style="cursor:pointer;font-size:11px" onclick="quickAddClause('La cotation doit inclure le délai de transit (TT) et le nom de l\'armateur.','fr')" title="La cotation doit inclure le délai de transit (TT) et le nom de l'armateur.">La cotation doit inclure le délai de trans…</span>
+
         </div>
         <div class="form-actions">
           <button class="btn btn-primary" onclick="saveClauses()">💾 Şartları Kaydet</button>
@@ -1773,38 +1845,64 @@
       <div class="card" style="margin-top:20px">
         <div class="card-title">ℹ️ FreightPro Hakkında</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:24px">
-          ${[
-            {icon:'📦',title:'Sevkiyat Takibi',desc:'ETD/ATD/ETA/ATA takibi, otomatik gecikme alarmları, canlı armatör linkleri'},
-            {icon:'💰',title:'Fiyat & Teklif',desc:'Alış fiyatı kaydı, müşteri teklifi oluşturma, PDF çıktısı, durum takibi'},
-            {icon:'📨',title:'RFQ Sistemi',desc:'TR/EN/FR dil desteği, zorunlu şartlar, forwarder yönetimi, PDF/yazdır'},
-            {icon:'🔔',title:'Alarm Sistemi',desc:'ETD gecikmesi, ETA yaklaşması, 7 gün içi varış otomatik bildirimleri'},
-            {icon:'⚠️',title:'Hile Uyarıları',desc:'Forwarder ve armatör hileleri, korunma yolları, 25+ madde'},
-            {icon:'🎯',title:'Karar Destek',desc:'KPI özeti, maliyet optimizasyon önerileri, piyasa analizi'},
-            {icon:'✉️',title:'Müşteri Mesajları',desc:'Varış bildirimleri, İngilizce ve Fransızca hazır şablon'},
-            {icon:'💾',title:'Veri Güvenliği',desc:'Tüm veri tarayıcıda localStorage\'da saklanır. .db yedek alma/yükleme'},
-            {icon:'🌙',title:'Gece/Gündüz Modu',desc:'Göz dostu koyu tema ve açık tema desteği, tercih kaydedilir'},
-          ].map(f=>`<div style="background:var(--navy2);border-radius:8px;padding:14px;border:1px solid var(--border)">
-            <div style="font-size:22px;margin-bottom:8px">${f.icon}</div>
-            <div style="font-weight:700;font-size:13px;margin-bottom:5px">${f.title}</div>
-            <div style="font-size:12px;color:var(--text2);line-height:1.6">${f.desc}</div>
-          </div>`).join('')}
+          <div style="background:var(--navy2);border-radius:8px;padding:14px;border:1px solid var(--border)">
+            <div style="font-size:22px;margin-bottom:8px">📦</div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:5px">Sevkiyat Takibi</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.6">ETD/ATD/ETA/ATA takibi, otomatik gecikme alarmları, canlı armatör linkleri</div>
+          </div>
+          <div style="background:var(--navy2);border-radius:8px;padding:14px;border:1px solid var(--border)">
+            <div style="font-size:22px;margin-bottom:8px">💰</div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:5px">Fiyat & Teklif</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.6">Alış fiyatı kaydı, müşteri teklifi oluşturma, PDF çıktısı</div>
+          </div>
+          <div style="background:var(--navy2);border-radius:8px;padding:14px;border:1px solid var(--border)">
+            <div style="font-size:22px;margin-bottom:8px">📨</div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:5px">RFQ Sistemi</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.6">TR/EN/FR dil desteği, zorunlu şartlar, forwarder yönetimi, PDF</div>
+          </div>
+          <div style="background:var(--navy2);border-radius:8px;padding:14px;border:1px solid var(--border)">
+            <div style="font-size:22px;margin-bottom:8px">🔔</div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:5px">Alarm Sistemi</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.6">ETD gecikmesi, ETA yaklaşması, 7 gün içi varış bildirimleri</div>
+          </div>
+          <div style="background:var(--navy2);border-radius:8px;padding:14px;border:1px solid var(--border)">
+            <div style="font-size:22px;margin-bottom:8px">⚠️</div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:5px">Hile Uyarıları</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.6">Forwarder, armatör, kamyoncu hileleri — 30+ madde</div>
+          </div>
+          <div style="background:var(--navy2);border-radius:8px;padding:14px;border:1px solid var(--border)">
+            <div style="font-size:22px;margin-bottom:8px">🎯</div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:5px">Karar Destek</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.6">KPI özeti, maliyet optimizasyon önerileri, piyasa analizi</div>
+          </div>
+          <div style="background:var(--navy2);border-radius:8px;padding:14px;border:1px solid var(--border)">
+            <div style="font-size:22px;margin-bottom:8px">🚛</div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:5px">Yurt İçi Lojistik</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.6">Kamyon takibi, yurt içi sevkiyat, sigorta yönetimi</div>
+          </div>
+          <div style="background:var(--navy2);border-radius:8px;padding:14px;border:1px solid var(--border)">
+            <div style="font-size:22px;margin-bottom:8px">💾</div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:5px">Veri Güvenliği</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.6">localStorage SQLite, .db yedek alma/yükleme</div>
+          </div>
+          <div style="background:var(--navy2);border-radius:8px;padding:14px;border:1px solid var(--border)">
+            <div style="font-size:22px;margin-bottom:8px">🌙</div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:5px">Tema & Dil</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.6">Gece/gündüz modu, TR/EN/FR dil desteği</div>
+          </div>
+
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
           <div>
             <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px">🛠️ Teknik Bilgiler</div>
-            ${[
-              ['Çalışma Ortamı','Tarayıcı (Chrome, Firefox, Safari, Edge)'],
-              ['Kurulum','Gerekmiyor — tek HTML dosyası'],
-              ['Veritabanı','SQLite (sql.js) — localStorage'],
-              ['Bağımlılıklar','sql.js 1.10.2, Chart.js 4.4.0'],
-              ['Fontlar','Space Grotesk, JetBrains Mono, Instrument Serif'],
-              ['Boyut','~200KB (tek dosya)'],
-              ['Lisans','MIT — Ücretsiz, açık kaynak'],
-            ].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px">
-              <span style="color:var(--text3)">${k}</span>
-              <span style="color:var(--text2);font-weight:500">${v}</span>
-            </div>`).join('')}
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">Çalışma Ortamı</span><span style="color:var(--text2);font-weight:500">Tarayıcı (Chrome, Firefox, Safari, Edge)</span></div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">Kurulum</span><span style="color:var(--text2);font-weight:500">Gerekmiyor — tek HTML dosyası</span></div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">Veritabanı</span><span style="color:var(--text2);font-weight:500">SQLite (sql.js) — localStorage</span></div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">Bağımlılıklar</span><span style="color:var(--text2);font-weight:500">sql.js 1.10.2, Chart.js 4.4.0</span></div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">Boyut</span><span style="color:var(--text2);font-weight:500">~250KB (tek dosya)</span></div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text3)">Lisans</span><span style="color:var(--text2);font-weight:500">MIT — Ücretsiz, açık kaynak</span></div>
+
           </div>
           <div>
             <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px">📋 Hızlı Başlangıç</div>
@@ -1832,9 +1930,31 @@
             <span id="aboutVerBadge" style="background:rgba(0,212,255,0.12);color:var(--accent);padding:4px 12px;border-radius:6px;font-weight:700;font-size:14px;font-family:'JetBrains Mono',monospace">v3.0</span>
             <span id="aboutBuildTs" style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace">2026-03-16 14:30:00</span>
           </div>
-          <button class="btn btn-ghost btn-sm" onclick="showPage('changelog')" style="font-size:12px">📋 Tüm Sürüm Notlarını Gör →</button>
+          <button class="btn btn-ghost btn-sm" onclick="showPage('changelog')" style="font-size:12px">📋 Sürüm Notları →</button>
         </div>
       </div>
+    </div>
+
+    <!-- VERSION HISTORY -->
+    <div class="card" style="margin-top:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div class="card-title" style="margin:0">📋 Sürüm Geçmişi
+          <span style="font-size:11px;font-weight:400;color:var(--text3);margin-left:8px">Bu kurulumda kaydedilmiş tüm versiyonlar</span>
+        </div>
+        <span id="currentVerBadge2" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.2);border-radius:6px;padding:4px 12px">v4.0</span>
+      </div>
+      <div id="versionHistoryContent"></div>
+    </div>
+
+    <!-- AUDIT LOG -->
+    <div class="card" style="margin-top:20px" id="auditLogCard">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div class="card-title" style="margin:0">🔍 Denetim Kaydı
+          <span style="font-size:11px;font-weight:400;color:var(--text3);margin-left:8px">Kim, ne zaman, ne yaptı</span>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="renderAuditLog()">🔄 Yenile</button>
+      </div>
+      <div id="auditLogContent"><div style="color:var(--text3);font-size:12px;padding:12px">Yükleniyor...</div></div>
     </div>
 
     <!-- USER MANAGEMENT (admin only) -->
@@ -1885,6 +2005,161 @@
         <button class="btn btn-primary btn-sm" onclick="document.getElementById('newUserForm').style.display=document.getElementById('newUserForm').style.display==='none'?'block':'none'">+ Yeni Kullanıcı</button>
       </div>
     </div>
+    </div>
+
+    <!-- DOMESTIC LOGISTICS PAGE -->
+    <div class="page" id="page-domestic">
+      <div class="page-header">
+        <div><div class="page-title">🚛 Yurt İçi Lojistik</div><div class="page-subtitle">Kamyon sevkiyat takibi, iç hat nakliye ve konteyner taşıma</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="exportDomesticCSV()">📊 Excel</button>
+          <button class="btn btn-primary" onclick="openModal('domesticModal')">+ Yeni Sevkiyat</button>
+        </div>
+      </div>
+      <div class="stats-grid" id="domesticStats"></div>
+      <div class="filter-bar">
+        <input class="search-input" type="text" id="domSearch" placeholder="🔍 Plaka, müşteri, rota..." oninput="renderDomestic()">
+        <select id="domTypeFilter" onchange="renderDomestic()">
+          <option value="">Tüm Tipler</option>
+          <option value="FTL">FTL (Tam Kamyon)</option>
+          <option value="LTL">LTL (Parsiyel)</option>
+          <option value="Konteyner">Konteyner Taşıma</option>
+          <option value="Express">Express / Kurye</option>
+          <option value="Soğuk Zincir">Soğuk Zincir</option>
+        </select>
+        <select id="domStatusFilter" onchange="renderDomestic()">
+          <option value="">Tüm Durumlar</option>
+          <option value="Planlandı">Planlandı</option>
+          <option value="Yolda">Yolda</option>
+          <option value="Teslim Edildi">Teslim Edildi</option>
+          <option value="Gecikme">Gecikme</option>
+          <option value="İptal">İptal</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="renderDomestic()">🔄</button>
+      </div>
+      <div class="card" style="padding:0">
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Sevkiyat No</th><th>Müşteri</th><th>Tip</th><th>Plaka</th>
+              <th>Sürücü</th><th>Çıkış</th><th>Varış</th><th>Tarih</th>
+              <th>Tutar</th><th>Durum</th><th>İşlem</th>
+            </tr></thead>
+            <tbody id="domesticTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- INSURANCE PAGE -->
+    <div class="page" id="page-insurance">
+      <div class="page-header">
+        <div><div class="page-title">🛡️ Sigorta Yönetimi</div><div class="page-subtitle">Kargo sigortası, poliçe takibi ve hasar bildirimleri</div></div>
+        <button class="btn btn-primary" onclick="openModal('insuranceModal')">+ Yeni Poliçe</button>
+      </div>
+      <div class="stats-grid" id="insuranceStats"></div>
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab(this,'ins-tab-policies')">📋 Poliçeler</div>
+        <div class="tab" onclick="switchTab(this,'ins-tab-claims')">⚠️ Hasar Bildirimleri</div>
+        <div class="tab" onclick="switchTab(this,'ins-tab-guide')">📖 Sigorta Rehberi</div>
+      </div>
+      <div class="tab-content active" id="ins-tab-policies" style="display:block">
+        <div class="card" style="padding:0">
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Poliçe No</th><th>Sigorta Şirketi</th><th>Kapsam</th><th>Başlangıç</th>
+                <th>Bitiş</th><th>Prim (TRY)</th><th>Teminat</th><th>Durum</th><th>İşlem</th>
+              </tr></thead>
+              <tbody id="insurancePoliciesTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="tab-content" id="ins-tab-claims">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div class="card-title" style="margin:0">⚠️ Hasar Bildirimleri</div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('claimModal')">+ Hasar Bildir</button>
+        </div>
+        <div class="card" style="padding:0">
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Bildirim No</th><th>Poliçe No</th><th>Kargo / Sevkiyat</th><th>Hasar Türü</th>
+                <th>Hasar Tutarı</th><th>Bildirim Tarihi</th><th>Durum</th><th>İşlem</th>
+              </tr></thead>
+              <tbody id="insuranceClaimsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="tab-content" id="ins-tab-guide">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="card">
+            <div class="card-title">📋 Kargo Sigortası Türleri</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="padding:12px;background:var(--navy2);border-radius:8px;border-left:4px solid var(--accent)">
+                <div style="font-weight:700;font-size:13px;margin-bottom:4px">Institute Cargo Clauses (A) — En Geniş</div>
+                <div style="font-size:12px;color:var(--text2);line-height:1.6">Tüm riskleri kapsar (hırsızlık, yangın, su hasarı, çarpma dahil). Uluslararası taşımalarda önerilen standart.</div>
+              </div>
+              <div style="padding:12px;background:var(--navy2);border-radius:8px;border-left:4px solid var(--gold)">
+                <div style="font-weight:700;font-size:13px;margin-bottom:4px">Institute Cargo Clauses (B) — Orta</div>
+                <div style="font-size:12px;color:var(--text2);line-height:1.6">Belirli riskleri kapsar: yangın, patlama, deniz kazası, devrilme. Klozda belirtilmeyen hasarlar hariçtir.</div>
+              </div>
+              <div style="padding:12px;background:var(--navy2);border-radius:8px;border-left:4px solid var(--text3)">
+                <div style="font-weight:700;font-size:13px;margin-bottom:4px">Institute Cargo Clauses (C) — Temel</div>
+                <div style="font-size:12px;color:var(--text2);line-height:1.6">Sadece büyük kazaları kapsar. Kısmi hasar ve hırsızlık kapsam dışıdır. Düşük primli, sınırlı koruma.</div>
+              </div>
+              <div style="padding:12px;background:var(--navy2);border-radius:8px;border-left:4px solid var(--green)">
+                <div style="font-weight:700;font-size:13px;margin-bottom:4px">Yurt İçi Kargo Sigortası</div>
+                <div style="font-size:12px;color:var(--text2);line-height:1.6">Karayolu taşımacılığı için CMR Konvansiyonu kapsamında. Zorunlu (STK) veya ihtiyari olabilir.</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">⚡ Hasar Anında Yapılacaklar</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;gap:10px;padding:10px;background:var(--navy2);border-radius:8px">
+                <div style="font-size:20px;font-weight:900;color:var(--accent);min-width:24px">1</div>
+                <div><div style="font-weight:600;font-size:13px">Fotoğraf ve Video Çek</div><div style="font-size:12px;color:var(--text2)">Hasarı teslimatta derhal belgele. Kamyon ve konteynırın dışı + içi.</div></div>
+              </div>
+              <div style="display:flex;gap:10px;padding:10px;background:var(--navy2);border-radius:8px">
+                <div style="font-size:20px;font-weight:900;color:var(--accent);min-width:24px">2</div>
+                <div><div style="font-weight:600;font-size:13px">Çekinceli Teslim Al</div><div style="font-size:12px;color:var(--text2)">Teslim belgesine "hasarlı alındı" yaz. Çekingesiz imza hak kaybına yol açar.</div></div>
+              </div>
+              <div style="display:flex;gap:10px;padding:10px;background:var(--navy2);border-radius:8px">
+                <div style="font-size:20px;font-weight:900;color:var(--accent);min-width:24px">3</div>
+                <div><div style="font-weight:600;font-size:13px">72 Saat İçinde Bildir</div><div style="font-size:12px;color:var(--text2)">Sigorta şirketine ve taşıyıcıya yazılı bildirim yap. Gecikme hak kaybı doğurur.</div></div>
+              </div>
+              <div style="display:flex;gap:10px;padding:10px;background:var(--navy2);border-radius:8px">
+                <div style="font-size:20px;font-weight:900;color:var(--accent);min-width:24px">4</div>
+                <div><div style="font-weight:600;font-size:13px">Eksper Talebi</div><div style="font-size:12px;color:var(--text2)">Sigorta şirketinden eksper atanmasını talep et. Tek taraflı ekspertiz yaptırma.</div></div>
+              </div>
+              <div style="display:flex;gap:10px;padding:10px;background:var(--navy2);border-radius:8px">
+                <div style="font-size:20px;font-weight:900;color:var(--accent);min-width:24px">5</div>
+                <div><div style="font-weight:600;font-size:13px">Hasarlı Malı Koru</div><div style="font-size:12px;color:var(--text2)">Sigorta incelenmeden malı imha etme veya tamir ettirme.</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FRAUD DOMESTIC PAGE (extended) -->
+    <div class="page" id="page-fraud-domestic">
+      <div class="page-header">
+        <div><div class="page-title">🚨 Lojistik Hile & Risk Uyarıları</div><div class="page-subtitle">Kamyoncu, lojistik şirket ve kargo hileleri — Korunma yolları</div></div>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab(this,'fd-tab-truck')">🚛 Kamyoncu Hileleri</div>
+        <div class="tab" onclick="switchTab(this,'fd-tab-logistics')">🏢 Lojistik Şirket</div>
+        <div class="tab" onclick="switchTab(this,'fd-tab-cargo')">📦 Kargo Hileleri</div>
+        <div class="tab" onclick="switchTab(this,'fd-tab-protection')">🛡️ Korunma</div>
+      </div>
+      <div class="tab-content active" id="fd-tab-truck" style="display:block" ></div>
+      <div class="tab-content" id="fd-tab-logistics"></div>
+      <div class="tab-content" id="fd-tab-cargo"></div>
+      <div class="tab-content" id="fd-tab-protection"></div>
     </div>
 
     <!-- SUGGESTIONS PAGE -->
@@ -2179,6 +2454,118 @@
   </div>
 </div>
 
+<!-- DOMESTIC MODAL -->
+<div class="modal-overlay" id="domesticModal">
+  <div class="modal" style="max-width:760px">
+    <button class="modal-close" onclick="closeModal('domesticModal')">✕</button>
+    <div class="modal-title" id="domesticModalTitle">Yeni Yurt İçi Sevkiyat</div>
+    <input type="hidden" id="editDomId">
+    <div class="form-grid">
+      <div class="form-group"><label>Sevkiyat No</label><input id="domNo" type="text" placeholder="SV-2026-001"></div>
+      <div class="form-group"><label>Müşteri *</label><input id="domMusteri" type="text" required></div>
+      <div class="form-group"><label>Taşıma Tipi *</label>
+        <select id="domTip">
+          <option>FTL (Tam Kamyon)</option><option>LTL (Parsiyel)</option>
+          <option>Konteyner Taşıma</option><option>Express / Kurye</option><option>Soğuk Zincir</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Araç Plakası</label><input id="domPlaka" type="text" placeholder="34 ABC 123"></div>
+      <div class="form-group"><label>Sürücü Adı</label><input id="domSurucu" type="text"></div>
+      <div class="form-group"><label>Sürücü Tel</label><input id="domSurucuTel" type="text" placeholder="+90 5xx xxx xx xx"></div>
+      <div class="form-group"><label>Nakliyeci Firma</label><input id="domNakliyeci" type="text"></div>
+      <div class="form-group"><label>Çıkış Noktası *</label><input id="domCikis" type="text" placeholder="İstanbul Depo, Esenyurt"></div>
+      <div class="form-group"><label>Varış Noktası *</label><input id="domVaris" type="text" placeholder="Ankara Depo, Ostim"></div>
+      <div class="form-group"><label>Yükleme Tarihi</label><input id="domYukleme" type="date"></div>
+      <div class="form-group"><label>Tahmini Teslim</label><input id="domTeslim" type="date"></div>
+      <div class="form-group"><label>Fiili Teslim</label><input id="domFiiliTeslim" type="date"></div>
+      <div class="form-group"><label>Kargo Tanımı</label><input id="domKargo" type="text" placeholder="Tekstil, Elektronik..."></div>
+      <div class="form-group"><label>Ağırlık (kg)</label><input id="domAgirlik" type="number" min="0"></div>
+      <div class="form-group"><label>Hacim (m³)</label><input id="domHacim" type="number" min="0" step="0.1"></div>
+      <div class="form-group"><label>Sigortalı mı?</label>
+        <select id="domSigorta"><option value="Evet">Evet</option><option value="Hayır">Hayır</option></select>
+      </div>
+      <div class="form-group"><label>Navlun Ücreti (TRY)</label><input id="domUcret" type="number" min="0"></div>
+      <div class="form-group"><label>Durum</label>
+        <select id="domDurum">
+          <option>Planlandı</option><option>Yolda</option>
+          <option>Teslim Edildi</option><option>Gecikme</option><option>İptal</option>
+        </select>
+      </div>
+      <div class="form-group full"><label>Notlar</label><textarea id="domNot" rows="2"></textarea></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveDomestic()">💾 Kaydet</button>
+      <button class="btn btn-ghost" onclick="closeModal('domesticModal')">İptal</button>
+    </div>
+  </div>
+</div>
+
+<!-- INSURANCE POLICY MODAL -->
+<div class="modal-overlay" id="insuranceModal">
+  <div class="modal" style="max-width:680px">
+    <button class="modal-close" onclick="closeModal('insuranceModal')">✕</button>
+    <div class="modal-title">Yeni Sigorta Poliçesi</div>
+    <input type="hidden" id="editInsId">
+    <div class="form-grid">
+      <div class="form-group"><label>Poliçe No *</label><input id="insPoliceNo" type="text" required></div>
+      <div class="form-group"><label>Sigorta Şirketi *</label><input id="insŞirket" type="text" required></div>
+      <div class="form-group"><label>Kapsam Tipi *</label>
+        <select id="insKapsam">
+          <option>Institute Cargo Clauses (A)</option>
+          <option>Institute Cargo Clauses (B)</option>
+          <option>Institute Cargo Clauses (C)</option>
+          <option>Yurt İçi Kargo (CMR)</option>
+          <option>Depo Sigortası</option>
+          <option>Açık Poliçe (Genel)</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Başlangıç Tarihi</label><input id="insBaslangic" type="date"></div>
+      <div class="form-group"><label>Bitiş Tarihi</label><input id="insBitis" type="date"></div>
+      <div class="form-group"><label>Sigortalı Tutar</label><input id="insTutar" type="number" min="0"></div>
+      <div class="form-group"><label>Para Birimi</label>
+        <select id="insCurr"><option>TRY</option><option>USD</option><option>EUR</option></select>
+      </div>
+      <div class="form-group"><label>Prim (TRY)</label><input id="insPrim" type="number" min="0"></div>
+      <div class="form-group"><label>Muafiyet</label><input id="insMuafiyet" type="text" placeholder="Örn: %0.5 veya 5.000 TRY"></div>
+      <div class="form-group"><label>Acente / Broker</label><input id="insAcente" type="text"></div>
+      <div class="form-group full"><label>Kapsanan Riskler / Notlar</label><textarea id="insNot" rows="2" placeholder="Yangın, hırsızlık, su hasarı..."></textarea></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveInsurance()">💾 Kaydet</button>
+      <button class="btn btn-ghost" onclick="closeModal('insuranceModal')">İptal</button>
+    </div>
+  </div>
+</div>
+
+<!-- INSURANCE CLAIM MODAL -->
+<div class="modal-overlay" id="claimModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('claimModal')">✕</button>
+    <div class="modal-title">⚠️ Hasar Bildirimi</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Poliçe No *</label><input id="claimPolice" type="text" required></div>
+      <div class="form-group"><label>Sevkiyat / Konteyner</label><input id="claimSevkiyat" type="text"></div>
+      <div class="form-group"><label>Hasar Türü *</label>
+        <select id="claimTur">
+          <option>Kırılma / Ezilme</option><option>Islak Hasar / Su</option>
+          <option>Eksiklik / Kayıp</option><option>Hırsızlık</option>
+          <option>Yangın / Patlama</option><option>Kirlenme / Kontaminasyon</option><option>Diğer</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Bildirim Tarihi</label><input id="claimTarih" type="date"></div>
+      <div class="form-group"><label>Tahmini Hasar Tutarı (TRY)</label><input id="claimTutar" type="number" min="0"></div>
+      <div class="form-group"><label>Eksper Durumu</label>
+        <select id="claimEksper"><option>Talep Edilmedi</option><option>Talep Edildi</option><option>İncelemede</option><option>Tamamlandı</option></select>
+      </div>
+      <div class="form-group full"><label>Hasar Açıklaması *</label><textarea id="claimAciklama" rows="3" required></textarea></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveClaim()">💾 Bildir</button>
+      <button class="btn btn-ghost" onclick="closeModal('claimModal')">İptal</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast-container" id="toastContainer"></div>
 
@@ -2189,12 +2576,18 @@
 let db;
 const SQL_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.wasm';
 
+function userDbKey() {
+  return 'fpDB_' + (currentUser ? currentUser.username : 'shared');
+}
+
 async function initDB() {
   const SQL = await initSqlJs({ locateFile: () => SQL_CDN });
-  const saved = localStorage.getItem('freightproDB');
+  const key = userDbKey();
+  const saved = localStorage.getItem(key);
   if (saved) {
     const arr = Uint8Array.from(atob(saved), c => c.charCodeAt(0));
     db = new SQL.Database(arr);
+    migrateDB();
   } else {
     db = new SQL.Database();
     createSchema();
@@ -2202,10 +2595,51 @@ async function initDB() {
   }
 }
 
+function migrateDB() {
+  // Add missing tables silently
+  const tables = [
+    `CREATE TABLE IF NOT EXISTS audit_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT, action TEXT, target TEXT, detail TEXT,
+      ts TEXT DEFAULT (datetime('now'))
+    )`,
+    `CREATE TABLE IF NOT EXISTS version_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      version TEXT, ts TEXT, author TEXT, items TEXT
+    )`,
+    `CREATE TABLE IF NOT EXISTS domestic (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      no TEXT, musteri TEXT, tip TEXT, plaka TEXT,
+      surucu TEXT, surucu_tel TEXT, nakliyeci TEXT,
+      cikis TEXT, varis TEXT, yukleme TEXT, teslim TEXT,
+      fiili_teslim TEXT, kargo TEXT, agirlik REAL, hacim REAL,
+      sigorta TEXT, ucret REAL, durum TEXT, notlar TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    )`,
+    `CREATE TABLE IF NOT EXISTS insurance (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      police_no TEXT, sirket TEXT, kapsam TEXT,
+      baslangic TEXT, bitis TEXT, tutar REAL, curr TEXT,
+      prim REAL, muafiyet TEXT, acente TEXT, notlar TEXT,
+      durum TEXT DEFAULT 'Aktif',
+      created_at TEXT DEFAULT (datetime('now'))
+    )`,
+    `CREATE TABLE IF NOT EXISTS claims (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      bildirim_no TEXT, police_no TEXT, sevkiyat TEXT,
+      tur TEXT, tarih TEXT, hasar_tutar REAL, eksper TEXT,
+      aciklama TEXT, durum TEXT DEFAULT 'Açık',
+      created_at TEXT DEFAULT (datetime('now'))
+    )`,
+  ];
+  tables.forEach(sql => { try { db.run(sql); } catch(e) {} });
+}
+
 function saveDB() {
+  if (!db) return;
   const data = db.export();
   const b64 = btoa(String.fromCharCode(...data));
-  localStorage.setItem('freightproDB', b64);
+  localStorage.setItem(userDbKey(), b64);
 }
 
 function exportDB() {
@@ -2259,47 +2693,7 @@ function importDB(input) {
   reader.readAsArrayBuffer(file);
 }
 
-function createSchema() {
-  db.run(`
-    CREATE TABLE IF NOT EXISTS shipments (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      cont_no TEXT, musteri TEXT, tip TEXT, adet INTEGER,
-      pol TEXT, pod TEXT, etd TEXT, atd TEXT, eta TEXT, ata TEXT,
-      armator TEXT, forwarder TEXT, bl TEXT, navlun REAL,
-      durum TEXT, kargo TEXT, notlar TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-    CREATE TABLE IF NOT EXISTS rates (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      tarih TEXT, armator TEXT, forwarder TEXT,
-      pol TEXT, pod TEXT, tip TEXT,
-      fiyat REAL, curr TEXT, tt INTEGER, gecerlilik TEXT, notlar TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-    CREATE TABLE IF NOT EXISTS quotes (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      quote_no TEXT, firma TEXT, kisi TEXT, email TEXT, tel TEXT,
-      armator TEXT, forwarder TEXT, pol TEXT, pod TEXT,
-      cont_type TEXT, cont_qty INTEGER, tt INTEGER, frequency TEXT,
-      etd TEXT, transship TEXT,
-      fiyat_json TEXT, toplam REAL, curr TEXT,
-      gecerlilik TEXT, odeme TEXT, includes TEXT, excludes TEXT, notlar TEXT,
-      durum TEXT DEFAULT 'Taslak',
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-    CREATE TABLE IF NOT EXISTS rfq (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      rfq_no TEXT, kargo TEXT, hs TEXT, tip TEXT, adet INTEGER,
-      kg REAL, cbm REAL, imo TEXT, imo_class TEXT,
-      pol TEXT, pod TEXT, etd TEXT, deadline TEXT,
-      incoterms TEXT, mode TEXT, items TEXT, forwarders TEXT, notlar TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-    CREATE TABLE IF NOT EXISTS settings (
-      key TEXT PRIMARY KEY, value TEXT
-    );
-  `);
-}
+
 
 function insertSampleData() {
   const today = new Date();
@@ -2377,32 +2771,7 @@ function query(sql, params=[]) {
   } catch(e) { console.error(e); return []; }
 }
 
-// ===================== NAVIGATION =====================
-function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + id)?.classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n => {
-    if (n.getAttribute('onclick')?.includes(`'${id}'`)) n.classList.add('active');
-  });
-  // Render page
-  const renders = {
-    dashboard: renderDashboard,
-    shipments: renderShipments,
-    alerts: renderAlerts,
-    rates: renderRates_market,
-    pricelist: renderRates,
-    rfq: () => { rfqForwarders = []; renderRFQForwarders(); loadSavedForwarderChips(); renderRFQClausesPreview(); setTimeout(initPortInputsForPage, 100); },
-    rfqlist: renderRFQList,
-    quotes: renderQuotes,
-    newquote: () => { initNewQuote(); setTimeout(initPortInputsForPage, 100); },
-    fraud: renderFraud,
-    decision: renderDecision,
-    messages: renderMessages,
-    settings: () => { renderSettingsPage(); loadClausesFromDB(); },
-  };
-  renders[id]?.();
-}
+
 
 function openModal(id) {
   document.getElementById(id)?.classList.add('open');
@@ -2629,6 +2998,7 @@ function saveShipment() {
     toast('Güncellendi','Konteynır kaydı güncellendi','success');
   } else {
     db.run(`INSERT INTO shipments (cont_no,musteri,tip,adet,pol,pod,etd,atd,eta,ata,armator,forwarder,bl,navlun,durum,kargo,notlar) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, vals);
+    auditLog('add','shipments',vals[0]||'yeni');
     toast('Eklendi','Yeni konteynır eklendi','success');
   }
   saveDB(); closeModal('shipmentModal');
@@ -2639,6 +3009,7 @@ function saveShipment() {
 function deleteShipment(id) {
   if (!confirm('Bu konteynırı silmek istediğinizden emin misiniz?')) return;
   db.run('DELETE FROM shipments WHERE id=?', [id]);
+  auditLog('delete','shipments','ID:'+id);
   saveDB(); renderShipments(); renderDashboard();
   toast('Silindi','Konteynır kaydı silindi','warn');
 }
@@ -2789,19 +3160,12 @@ function renderRates_market() {
     <table>
       <thead><tr><th>Rota</th><th>Spot (40HC)</th><th>Trend</th><th>TT</th></tr></thead>
       <tbody>
-        ${[
-          ['Shanghai → Rotterdam','$3,200','↑ +8%','28g'],
-          ['Shanghai → Mersin','$2,400','→ 0%','35g'],
-          ['Hamburg → Istanbul','$1,200','↓ -3%','18g'],
-          ['LA → Shanghai','$800','↑ +2%','21g'],
-          ['Mersin → Jebel Ali','$1,500','↑ +5%','12g'],
-          ['Rotterdam → Mersin','$1,900','↑ +1%','14g'],
-        ].map(r => `<tr>
-          <td style="font-size:12px">${r[0]}</td>
-          <td class="mono" style="color:var(--accent)">${r[1]}</td>
-          <td style="color:${r[2].includes('↑')?'var(--green)':r[2].includes('↓')?'var(--red)':'var(--text3)'}">${r[2]}</td>
-          <td style="font-size:12px">${r[3]}</td>
-        </tr>`).join('')}
+         <tr><td style="font-size:12px">Shanghai → Rotterdam</td><td class="mono" style="color:var(--accent)">$3,200</td><td style="color:var(--green)">↑ +8%</td><td>28g</td></tr>
+         <tr><td style="font-size:12px">Shanghai → Mersin</td><td class="mono" style="color:var(--accent)">$2,400</td><td style="color:var(--text3)">→ 0%</td><td>35g</td></tr>
+         <tr><td style="font-size:12px">Hamburg → Istanbul</td><td class="mono" style="color:var(--accent)">$1,200</td><td style="color:var(--red)">↓ -3%</td><td>18g</td></tr>
+         <tr><td style="font-size:12px">LA → Shanghai</td><td class="mono" style="color:var(--accent)">$800</td><td style="color:var(--green)">↑ +2%</td><td>21g</td></tr>
+         <tr><td style="font-size:12px">Mersin → Jebel Ali</td><td class="mono" style="color:var(--accent)">$1,500</td><td style="color:var(--green)">↑ +5%</td><td>12g</td></tr>
+         <tr><td style="font-size:12px">Rotterdam → Mersin</td><td class="mono" style="color:var(--accent)">$1,900</td><td style="color:var(--green)">↑ +1%</td><td>14g</td></tr>
       </tbody>
     </table>`;
 
@@ -2896,31 +3260,7 @@ function renderRates() {
   }).join('') || `<tr><td colspan="12" style="text-align:center;padding:30px;color:var(--text3)">Kayıt bulunamadı</td></tr>`;
 }
 
-function saveRate() {
-  const id = document.getElementById('editRateId').value;
-  const vals = [
-    document.getElementById('rDate').value,
-    document.getElementById('rArmator').value,
-    document.getElementById('rForwarder').value,
-    document.getElementById('rPOL').value,
-    document.getElementById('rPOD').value,
-    document.getElementById('rTip').value,
-    parseFloat(document.getElementById('rFiyat').value)||0,
-    document.getElementById('rCurr').value,
-    parseInt(document.getElementById('rTT').value)||0,
-    document.getElementById('rGecerli').value||null,
-    document.getElementById('rNot').value,
-  ];
-  if (!vals[0]||!vals[1]||!vals[3]||!vals[4]) { toast('Hata','Zorunlu alanları doldurun','danger'); return; }
-  if (id) {
-    db.run(`UPDATE rates SET tarih=?,armator=?,forwarder=?,pol=?,pod=?,tip=?,fiyat=?,curr=?,tt=?,gecerlilik=?,notlar=? WHERE id=?`, [...vals,id]);
-    toast('Güncellendi','Fiyat kaydı güncellendi','success');
-  } else {
-    db.run(`INSERT INTO rates (tarih,armator,forwarder,pol,pod,tip,fiyat,curr,tt,gecerlilik,notlar) VALUES (?,?,?,?,?,?,?,?,?,?,?)`, vals);
-    toast('Eklendi','Fiyat eklendi','success');
-  }
-  saveDB(); closeModal('rateModal'); renderRates();
-}
+
 
 function editRate(id) {
   const r = query('SELECT * FROM rates WHERE id=?', [id])[0];
@@ -3220,13 +3560,10 @@ function renderDecision() {
   const rates = query('SELECT * FROM rates ORDER BY tarih DESC');
   const quotes = query('SELECT * FROM quotes');
   const today = new Date();
-
   const totalNav = ships.reduce((a,s)=>a+(s.navlun||0),0);
   const avgNav = ships.length ? (totalNav/ships.length).toFixed(0) : 0;
   const activeShips = ships.filter(s=>s.durum!=='Teslim Edildi').length;
-  const approvedQ = quotes.filter(q=>q.durum==='Onaylandı').length;
   const totalQVal = quotes.filter(q=>q.durum==='Onaylandı').reduce((a,q)=>a+(q.toplam||0),0);
-
   const el = document.getElementById('decisionContent');
   if (!el) return;
 
@@ -3237,58 +3574,37 @@ function renderDecision() {
       <div class="stat-card green"><div class="stat-label">Onaylı Teklif Değeri</div><div class="stat-value" style="color:var(--green);font-size:20px">$${totalQVal.toLocaleString()}</div><div class="stat-icon">✅</div></div>
       <div class="stat-card orange"><div class="stat-label">Ortalama Navlun</div><div class="stat-value" style="color:var(--orange);font-size:20px">$${parseInt(avgNav).toLocaleString()}</div><div class="stat-icon">📊</div></div>
     </div>
-
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
       <div class="card">
         <div class="card-title">🎯 Aksiyon Öncelikleri</div>
-        ${[
-          { p:'YÜKSEK', text:'Varışa 7 gün kalan sevkiyatlar için gümrük ve teslimat planlamasını başlatın', c:'var(--red)' },
-          { p:'YÜKSEK', text:'Geciken ETD\'li konteynırlar için armatörle iletişime geçin ve müşterileri bilgilendirin', c:'var(--red)' },
-          { p:'ORTA', text:'Süresi dolmak üzere olan teklifleri güncelleyin veya yenileyin', c:'var(--gold)' },
-          { p:'ORTA', text:'Geçerliliği biten fiyat kotasyonlarını yenileyin', c:'var(--gold)' },
-          { p:'DÜŞÜK', text:'Aylık navlun trendlerini inceleyerek kontrat müzakerelerini planlayın', c:'var(--text3)' },
-        ].map(i=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)">
-          <span style="font-size:10px;font-weight:800;color:${i.c};min-width:55px;padding-top:2px">${i.p}</span>
-          <span style="font-size:13px;color:var(--text2)">${i.text}</span>
-        </div>`).join('')}
+        <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)"><span style="font-size:10px;font-weight:800;color:var(--red);min-width:55px;padding-top:2px">YÜKSEK</span><span style="font-size:13px;color:var(--text2)">Varışa 7 gün kalan sevkiyatlar için gümrük ve teslimat planlamasını başlatın</span></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)"><span style="font-size:10px;font-weight:800;color:var(--red);min-width:55px;padding-top:2px">YÜKSEK</span><span style="font-size:13px;color:var(--text2)">Geciken ETD'li konteynırlar için armatörle iletişime geçin ve müşterileri bilgilendirin</span></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)"><span style="font-size:10px;font-weight:800;color:var(--gold);min-width:55px;padding-top:2px">ORTA</span><span style="font-size:13px;color:var(--text2)">Süresi dolmak üzere olan teklifleri güncelleyin veya yenileyin</span></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)"><span style="font-size:10px;font-weight:800;color:var(--gold);min-width:55px;padding-top:2px">ORTA</span><span style="font-size:13px;color:var(--text2)">Geçerliliği biten fiyat kotasyonlarını yenileyin</span></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0"><span style="font-size:10px;font-weight:800;color:var(--text3);min-width:55px;padding-top:2px">DÜŞÜK</span><span style="font-size:13px;color:var(--text2)">Aylık navlun trendlerini inceleyerek kontrat müzakerelerini planlayın</span></div>
       </div>
-
       <div class="card">
         <div class="card-title">📌 Piyasa Özeti</div>
-        ${[
-          { label:'Şangay–Mersin Spot', val:'$2,400/40HC', trend:'→ Sabit' },
-          { label:'Hamburg–Istanbul Spot', val:'$1,200/20DC', trend:'↓ -3%' },
-          { label:'Kızıldeniz Etkisi', val:'+%15-25', trend:'🔴 Devam ediyor' },
-          { label:'Çin Yeni Yılı Kapasitesi', val:'-%40', trend:'⚠️ Şubat' },
-          { label:'Avrupa Hat Fiyatı', val:'Düşük Sezonu', trend:'✅ Kontrat fırsatı' },
-        ].map(i=>`<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px">
-          <span style="color:var(--text2)">${i.label}</span>
-          <span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:12px">${i.val} <span style="color:var(--text3)">${i.trend}</span></span>
-        </div>`).join('')}
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--text2)">Şangay–Mersin Spot</span><span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:12px">$2,400/40HC <span style="color:var(--text3)">→ Sabit</span></span></div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--text2)">Hamburg–Istanbul Spot</span><span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:12px">$1,200/20DC <span style="color:var(--red)">↓ -3%</span></span></div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--text2)">Kızıldeniz Etkisi</span><span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:12px">+%15-25 <span style="color:var(--red)">🔴 Devam</span></span></div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--text2)">Çin Yeni Yılı Kapasitesi</span><span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:12px">-%40 <span style="color:var(--gold)">⚠️ Şubat</span></span></div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:13px"><span style="color:var(--text2)">Avrupa Hat Fiyatı</span><span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:12px">Düşük Sezon <span style="color:var(--green)">✅ Kontrat</span></span></div>
       </div>
     </div>
-
-    <div class="card">
+    <div class="card" style="margin-top:20px">
       <div class="card-title">💡 Maliyet Optimizasyon Önerileri</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
-        ${[
-          { icon:'🔄', title:'Konsolidasyon', desc:'Küçük hacimleri LCL yerine konsolide ederek 40HC\'ye çevirin. Ortalama %12-18 maliyet avantajı.' },
-          { icon:'📅', title:'Kontrat Planlama', desc:'Yıllık yük hacminiz 100 TEU üzerindeyse spot yerine uzun dönem kontrat müzakeresi yapın.' },
-          { icon:'🌐', title:'Hub Rotası', desc:'Direkt sefer yoksa hub-spoke rotayı karşılaştırın. Bazen 2+ aktarmalı rota %20 daha ucuz.' },
-          { icon:'⏰', title:'Erken Rezervasyon', desc:'Yüksek sezonda 3-4 hafta önceden booking yapın. Son dakika fiyatları %30-50 daha yüksek.' },
-          { icon:'💱', title:'Döviz Hedge', desc:'USD/TRY volatilitesi için navlun ödemelerinde forward döviz kontratı değerlendirin.' },
-          { icon:'🔍', title:'Freight Audit', desc:'Yıllık navlun giderlerinizin %3-8\'ini hatalı faturalar oluşturuyor. Periyodik audit yapın.' },
-        ].map(i=>`<div style="background:var(--navy2);border-radius:var(--radius2);padding:16px;border:1px solid var(--border)">
-          <div style="font-size:24px;margin-bottom:8px">${i.icon}</div>
-          <div style="font-weight:700;font-size:13px;margin-bottom:6px">${i.title}</div>
-          <div style="font-size:12px;color:var(--text2);line-height:1.6">${i.desc}</div>
-        </div>`).join('')}
+        <div style="background:var(--navy2);border-radius:var(--radius2);padding:16px;border:1px solid var(--border)"><div style="font-size:24px;margin-bottom:8px">🔄</div><div style="font-weight:700;font-size:13px;margin-bottom:6px">Konsolidasyon</div><div style="font-size:12px;color:var(--text2);line-height:1.6">Küçük hacimleri LCL yerine konsolide ederek 40HC'ye çevirin. Ortalama %12-18 maliyet avantajı.</div></div>
+        <div style="background:var(--navy2);border-radius:var(--radius2);padding:16px;border:1px solid var(--border)"><div style="font-size:24px;margin-bottom:8px">📅</div><div style="font-weight:700;font-size:13px;margin-bottom:6px">Kontrat Planlama</div><div style="font-size:12px;color:var(--text2);line-height:1.6">Yıllık yük hacminiz 100 TEU üzerindeyse spot yerine uzun dönem kontrat müzakeresi yapın.</div></div>
+        <div style="background:var(--navy2);border-radius:var(--radius2);padding:16px;border:1px solid var(--border)"><div style="font-size:24px;margin-bottom:8px">🌐</div><div style="font-weight:700;font-size:13px;margin-bottom:6px">Hub Rotası</div><div style="font-size:12px;color:var(--text2);line-height:1.6">Direkt sefer yoksa hub-spoke rotayı karşılaştırın. Bazen 2+ aktarmalı rota %20 daha ucuz.</div></div>
+        <div style="background:var(--navy2);border-radius:var(--radius2);padding:16px;border:1px solid var(--border)"><div style="font-size:24px;margin-bottom:8px">⏰</div><div style="font-weight:700;font-size:13px;margin-bottom:6px">Erken Rezervasyon</div><div style="font-size:12px;color:var(--text2);line-height:1.6">Yüksek sezonda 3-4 hafta önceden booking yapın. Son dakika fiyatları %30-50 daha yüksek.</div></div>
+        <div style="background:var(--navy2);border-radius:var(--radius2);padding:16px;border:1px solid var(--border)"><div style="font-size:24px;margin-bottom:8px">💱</div><div style="font-weight:700;font-size:13px;margin-bottom:6px">Döviz Hedge</div><div style="font-size:12px;color:var(--text2);line-height:1.6">USD/TRY volatilitesi için navlun ödemelerinde forward döviz kontratı değerlendirin.</div></div>
+        <div style="background:var(--navy2);border-radius:var(--radius2);padding:16px;border:1px solid var(--border)"><div style="font-size:24px;margin-bottom:8px">🔍</div><div style="font-weight:700;font-size:13px;margin-bottom:6px">Freight Audit</div><div style="font-size:12px;color:var(--text2);line-height:1.6">Yıllık navlun giderlerinizin %3-8'ini hatalı faturalar oluşturuyor. Periyodik audit yapın.</div></div>
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
-// ===================== MESSAGES =====================
 function renderMessages() {
   const ships = query('SELECT * FROM shipments WHERE ata IS NULL ORDER BY eta ASC');
   const today = new Date();
@@ -3396,16 +3712,21 @@ function renderSettingsPage() {
   document.getElementById('setDelayDays').value = getSetting('delayDays')||'3';
   document.getElementById('setArrivalWarn').value = getSetting('arrivalWarn')||'7';
   loadMandatoryFieldsUI();
-  // Update about section version
+  // Update about section
   const avb = document.getElementById('aboutVerBadge');
   const abt = document.getElementById('aboutBuildTs');
   if (avb) avb.textContent = BUILD_VERSION;
   if (abt) abt.textContent = BUILD_TIMESTAMP;
-  // Render user management
-  renderUserTable();
-  // Show/hide user mgmt based on role
+  // User management - only for admins
   const umc = document.getElementById('userMgmtCard');
-  if (umc) umc.style.display = currentUser?.role === 'Süper Admin' ? 'block' : 'none';
+  if (umc) umc.style.display = hasPerm('manage_users') ? 'block' : 'none';
+  if (hasPerm('manage_users')) renderUserTable();
+  // Version history - always visible
+  renderVersionHistory();
+  // Audit log - only for admins
+  const alc = document.getElementById('auditLogCard');
+  if (alc) alc.style.display = hasPerm('view_audit') ? 'block' : 'none';
+  if (hasPerm('view_audit')) renderAuditLog();
 }
 
 function saveSettings_form() {
@@ -3592,8 +3913,8 @@ function addCustomRFQItem() {
 }
 
 function openRFQPrintWindow() {
-  const html = buildRFQHtml();
-  if (!html) return;
+  const rfqDoc = buildRFQHtml();
+  if (!rfqDoc) return;
   const win = window.open('', '_blank', 'width=900,height=1100,scrollbars=yes');
   win.document.write(`<!DOCTYPE html><html><head>
     <meta charset="UTF-8">
@@ -3615,7 +3936,7 @@ function openRFQPrintWindow() {
       <button onclick="window.print()" style="background:#10b981;color:#fff;border:none;padding:8px 20px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">🖨️ Yazdır / PDF Kaydet</button>
       <button onclick="window.close()" style="background:#374151;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer">✕ Kapat</button>
     </div>
-    <div style="padding:20px">${html}</div>
+    <div style="padding:20px">${rfqDoc}</div>
   </body></html>`);
   win.document.close();
 }
@@ -4571,85 +4892,329 @@ function saveRate() {
 }
 
 // ===================== BUILD INFO =====================
-const BUILD_VERSION = 'v3.0';
-const BUILD_TIMESTAMP = '2026-03-16 14:30:00';
+const BUILD_VERSION = 'v4.0';
+const BUILD_TIMESTAMP = '2026-03-16 17:00:00';
 
 // ===================== USERS & AUTH =====================
+// ── All available permissions ────────────────────────────────────────────────
+const ALL_PERMS = {
+  view_shipments:'Konteynır - Görüntüle',       edit_shipments:'Konteynır - Ekle/Düzenle/Sil',
+  view_rates:'Fiyat - Görüntüle',               edit_rates:'Fiyat - Ekle/Düzenle/Sil',
+  view_quotes:'Teklif - Görüntüle',             edit_quotes:'Teklif - Oluştur/Düzenle',
+  view_rfq:'RFQ - Görüntüle',                   edit_rfq:'RFQ - Oluştur',
+  view_domestic:'Yurt İçi - Görüntüle',         edit_domestic:'Yurt İçi - Ekle/Düzenle',
+  view_insurance:'Sigorta - Görüntüle',         edit_insurance:'Sigorta - Ekle/Düzenle',
+  export_data:'Veri Dışa Aktar',                import_data:'Veri İçe Aktar',
+  manage_users:'Kullanıcı Yönetimi',            manage_settings:'Sistem Ayarları',
+  view_audit:'Denetim Kaydı Görüntüle',
+};
+
+const ROLE_PRESETS = {
+  'Süper Admin': Object.keys(ALL_PERMS),
+  'Yönetici':    ['view_shipments','edit_shipments','view_rates','edit_rates','view_quotes','edit_quotes','view_rfq','edit_rfq','view_domestic','edit_domestic','view_insurance','edit_insurance','export_data','import_data','manage_settings'],
+  'Operatör':    ['view_shipments','edit_shipments','view_rates','view_quotes','edit_quotes','view_rfq','edit_rfq','view_domestic','edit_domestic','view_insurance','export_data'],
+  'Görüntüleyici':['view_shipments','view_rates','view_quotes','view_rfq','view_domestic','view_insurance'],
+  'Muhasebe':    ['view_shipments','view_rates','view_quotes','view_insurance','export_data'],
+  'Özel':        [],
+};
+
 const DEFAULT_USERS = [
-  { username: 'admin',   password: 'admin123',  name: 'Admin',         role: 'Süper Admin', lang: 'tr' },
-  { username: 'user1',   password: 'user123',   name: 'Kullanıcı 1',   role: 'Operatör',    lang: 'tr' },
-  { username: 'viewer',  password: 'view123',   name: 'Viewer',        role: 'Görüntüleyici', lang: 'en' },
+  { username:'admin',  password:'admin123', name:'Admin',         role:'Süper Admin',  lang:'tr', active:true, permissions:[...ROLE_PRESETS['Süper Admin']], createdAt:'2026-03-16 14:30:00', lastLogin:null },
+  { username:'user1',  password:'user123',  name:'Ahmet Yılmaz', role:'Operatör',     lang:'tr', active:true, permissions:[...ROLE_PRESETS['Operatör']],    createdAt:'2026-03-16 14:30:00', lastLogin:null },
+  { username:'viewer', password:'view123',  name:'Viewer',       role:'Görüntüleyici',lang:'en', active:true, permissions:[...ROLE_PRESETS['Görüntüleyici']],createdAt:'2026-03-16 14:30:00', lastLogin:null },
 ];
 
+// ── User helpers ─────────────────────────────────────────────────────────────
 function getUsers() {
   try { return JSON.parse(localStorage.getItem('fpUsers') || 'null') || DEFAULT_USERS; }
   catch { return DEFAULT_USERS; }
 }
-function saveUsers(users) { localStorage.setItem('fpUsers', JSON.stringify(users)); }
+function saveUsers(u) { localStorage.setItem('fpUsers', JSON.stringify(u)); }
 
+function hasPerm(p) {
+  if (!currentUser) return false;
+  if (currentUser.role === 'Süper Admin') return true;
+  return (currentUser.permissions || []).includes(p);
+}
+function requirePerm(p) {
+  if (!hasPerm(p)) { toast('Yetersiz Yetki', 'Bu işlem için yetkiniz yok.', 'danger'); return false; }
+  return true;
+}
+
+// ── Audit logging ─────────────────────────────────────────────────────────────
+function auditLog(action, target, detail) {
+  if (!db) return;
+  try {
+    db.run('INSERT INTO audit_log (username,action,target,detail) VALUES (?,?,?,?)',
+      [currentUser?.username || '?', action, target, detail]);
+    // don't saveDB() here - caller will do it
+  } catch(e) {}
+}
+
+// ── Version history recording ─────────────────────────────────────────────────
+function recordVersionHistory() {
+  if (!db) return;
+  try {
+    const existing = query('SELECT id FROM version_history WHERE version=? LIMIT 1', [BUILD_VERSION]);
+    if (existing.length === 0) {
+      const items = JSON.stringify(CHANGELOG_DATA.find(c => c.version === BUILD_VERSION)?.items || []);
+      db.run('INSERT INTO version_history (version,ts,author,items) VALUES (?,?,?,?)',
+        [BUILD_VERSION, BUILD_TIMESTAMP, currentUser?.name || 'Sistem', items]);
+      saveDB();
+    }
+  } catch(e) {}
+}
+
+// ── Permission-based sidebar visibility ───────────────────────────────────────
+function applyPermissions() {
+  const permMap = {
+    pricelist:'view_rates', rfq:'view_rfq', rfqlist:'view_rfq',
+    quotes:'view_quotes', newquote:'edit_quotes',
+    domestic:'view_domestic', insurance:'view_insurance',
+  };
+  document.querySelectorAll('.nav-item[onclick]').forEach(el => {
+    const m = (el.getAttribute('onclick') || '').match(/showPage\('([^']+)'\)/);
+    if (!m) return;
+    const req = permMap[m[1]];
+    el.style.display = req ? (hasPerm(req) ? '' : 'none') : '';
+  });
+  // Hide topbar actions for read-only
+  const addBtn = document.getElementById('topbarAddBtn');
+  if (addBtn) addBtn.style.display = hasPerm('edit_shipments') ? '' : 'none';
+}
+
+// ── Render user table (settings page) ────────────────────────────────────────
 function renderUserTable() {
   const el = document.getElementById('userListTable');
   if (!el) return;
   const users = getUsers();
-  const roleColor = {'Süper Admin':'var(--accent)','Operatör':'var(--gold)','Görüntüleyici':'var(--text3)'};
-  const langFlag = { tr:'🇹🇷', en:'🇬🇧', fr:'🇫🇷' };
-  el.innerHTML = `<table><thead><tr>
-    <th>Kullanıcı Adı</th><th>Ad Soyad</th><th>Rol</th><th>Dil</th><th>İşlemler</th>
-  </tr></thead><tbody>
-  ${users.map((u,i) => `<tr>
-    <td class="mono" style="color:var(--accent)">${u.username}</td>
-    <td style="font-weight:600">${u.name}</td>
-    <td><span style="font-size:11px;font-weight:700;color:${roleColor[u.role]||'var(--text3)'}">${u.role}</span></td>
-    <td>${langFlag[u.lang]||'🌐'} ${u.lang?.toUpperCase()||'TR'}</td>
-    <td>
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-ghost btn-sm" onclick="promptChangePassword(${i})" title="Şifre değiştir">🔑</button>
-        ${u.username !== 'admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteUser(${i})" title="Kullanıcı sil">🗑</button>` : '<span style="font-size:10px;color:var(--text3);padding:4px 6px">Silinemez</span>'}
-      </div>
-    </td>
-  </tr>`).join('')}
-  </tbody></table>`;
+  const rCol = {'Süper Admin':'var(--accent)','Yönetici':'var(--bl)','Operatör':'var(--gold)','Görüntüleyici':'var(--text3)','Muhasebe':'var(--pu)','Özel':'var(--or)'};
+  const lf = { tr:'🇹🇷', en:'🇬🇧', fr:'🇫🇷' };
+  el.innerHTML = `
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>Kullanıcı Adı</th><th>Ad Soyad</th><th>Rol</th><th>Dil</th><th>Durum</th><th>Son Giriş</th><th>İzin</th><th>İşlemler</th></tr></thead>
+    <tbody>${users.map((u,i) => `<tr>
+      <td class="mono" style="color:var(--accent);font-weight:700">${u.username}</td>
+      <td style="font-weight:600">${u.name}</td>
+      <td><span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;background:${rCol[u.role]||'var(--text3)'}22;color:${rCol[u.role]||'var(--text3)'}">${u.role}</span></td>
+      <td>${lf[u.lang]||'🌐'} ${(u.lang||'tr').toUpperCase()}</td>
+      <td><span class="status ${u.active===false?'status-alert':'status-ok'}">${u.active===false?'Pasif':'Aktif'}</span></td>
+      <td class="mono" style="font-size:10px;color:var(--text3)">${u.lastLogin||'—'}</td>
+      <td style="font-size:11px;color:var(--text3)">${(u.permissions||[]).length}/${Object.keys(ALL_PERMS).length}</td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm" onclick="openUserEditor(${i})" title="Düzenle">✏️</button>
+        ${u.username!=='admin'?`
+        <button class="btn btn-ghost btn-sm" onclick="toggleUserActive(${i})" title="${u.active===false?'Aktifleştir':'Durdur'}">${u.active===false?'▶':'⏸'}</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteUser(${i})">🗑</button>`
+        :'<span style="font-size:10px;color:var(--text3);padding:0 4px">Korumalı</span>'}
+      </div></td>
+    </tr>`).join('')}
+    </tbody>
+  </table></div>`;
+}
+
+function toggleUserActive(idx) {
+  const users = getUsers();
+  if (users[idx]?.username === 'admin') { toast('Hata','Admin devre dışı bırakılamaz','danger'); return; }
+  users[idx].active = users[idx].active === false;
+  saveUsers(users);
+  renderUserTable();
+  toast('Güncellendi', users[idx].name + (users[idx].active ? ' aktifleştirildi' : ' durduruldu'), 'success');
+}
+
+function deleteUser(idx) {
+  const users = getUsers();
+  if (users[idx]?.username === 'admin') { toast('Hata','Admin silinemez','danger'); return; }
+  if (!confirm('"' + users[idx]?.name + '" silinsin mi?\nBu kullanıcıya ait tüm veriler kalıcı silinecek!')) return;
+  localStorage.removeItem('fpDB_' + users[idx].username);
+  users.splice(idx, 1);
+  saveUsers(users);
+  renderUserTable();
+  toast('Silindi', 'Kullanıcı ve verileri silindi', 'warn');
 }
 
 function addNewUser() {
-  const username = document.getElementById('nuUsername').value.trim();
-  const name = document.getElementById('nuName').value.trim();
+  const username = document.getElementById('nuUsername').value.trim().toLowerCase();
+  const name     = document.getElementById('nuName').value.trim();
   const password = document.getElementById('nuPassword').value;
-  const role = document.getElementById('nuRole').value;
-  const lang = document.getElementById('nuLang').value;
-  if (!username || !name || !password) { toast('Hata','Tüm zorunlu alanları doldurun','danger'); return; }
+  const role     = document.getElementById('nuRole').value;
+  const lang     = document.getElementById('nuLang').value;
+  if (!username || !name || !password) { toast('Hata','Tüm alanlar zorunlu','danger'); return; }
+  if (password.length < 4) { toast('Hata','Şifre en az 4 karakter','danger'); return; }
   const users = getUsers();
-  if (users.find(u => u.username === username)) { toast('Hata','Bu kullanıcı adı zaten mevcut','danger'); return; }
-  users.push({ username, password, name, role, lang });
+  if (users.find(u => u.username === username)) { toast('Hata','Bu kullanıcı adı zaten var','danger'); return; }
+  const ts = new Date().toISOString().slice(0,19).replace('T',' ');
+  users.push({ username, password, name, role, lang, active:true, permissions:[...ROLE_PRESETS[role]||[]], createdAt:ts, lastLogin:null });
   saveUsers(users);
   document.getElementById('nuUsername').value = '';
   document.getElementById('nuName').value = '';
   document.getElementById('nuPassword').value = '';
   document.getElementById('newUserForm').style.display = 'none';
   renderUserTable();
-  toast('Eklendi', `${name} kullanıcısı oluşturuldu ✓`, 'success');
+  toast('Eklendi', name + ' oluşturuldu ✓', 'success');
 }
 
-function deleteUser(idx) {
-  const users = getUsers();
-  if (!confirm(`"${users[idx]?.name}" kullanıcısını silmek istiyor musunuz?`)) return;
-  users.splice(idx, 1);
-  saveUsers(users);
-  renderUserTable();
-  toast('Silindi', 'Kullanıcı silindi', 'warn');
-}
-
-function promptChangePassword(idx) {
+function openUserEditor(idx) {
   const users = getUsers();
   const u = users[idx];
-  const newPass = prompt(`"${u.name}" için yeni şifre girin:`);
-  if (!newPass || newPass.trim().length < 4) { if (newPass !== null) toast('Hata','Şifre en az 4 karakter olmalı','danger'); return; }
-  users[idx].password = newPass.trim();
-  saveUsers(users);
-  toast('Güncellendi', `${u.name} şifresi güncellendi ✓`, 'success');
+  const existing = document.getElementById('_userEditorModal');
+  if (existing) existing.remove();
+
+  const roleOpts = Object.keys(ROLE_PRESETS).map(r =>
+    `<option value="${r}"${u.role===r?' selected':''}>${r}</option>`).join('');
+
+  const permGroups = [
+    { label:'📦 Konteynır', keys:['view_shipments','edit_shipments'] },
+    { label:'💰 Fiyat & Teklif', keys:['view_rates','edit_rates','view_quotes','edit_quotes'] },
+    { label:'📨 RFQ', keys:['view_rfq','edit_rfq'] },
+    { label:'🚛 Yurt İçi', keys:['view_domestic','edit_domestic'] },
+    { label:'🛡️ Sigorta', keys:['view_insurance','edit_insurance'] },
+    { label:'⚙️ Sistem', keys:['export_data','import_data','manage_users','manage_settings','view_audit'] },
+  ];
+
+  const permsHtml = permGroups.map(g => `
+    <div style="margin-bottom:12px">
+      <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-family:'JetBrains Mono',monospace">${g.label}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+        ${g.keys.map(k => {
+          const checked = (u.permissions||[]).includes(k);
+          return `<label style="display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:5px;cursor:pointer;background:${checked?'rgba(0,212,255,.07)':'transparent'}" onmouseover="this.style.background='var(--navy3)'" onmouseout="this.style.background='${checked?'rgba(0,212,255,.07)':'transparent'}'">
+            <input type="checkbox" class="_upchk" value="${k}" ${checked?'checked':''} style="accent-color:var(--accent)">
+            <span style="font-size:11.5px;color:var(--text2)">${ALL_PERMS[k]||k}</span>
+          </label>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+
+  const ov = document.createElement('div');
+  ov.id = '_userEditorModal';
+  ov.className = 'modal-overlay open';
+  ov.innerHTML = `
+    <div class="modal mlg" style="max-width:680px">
+      <button class="modal-close" onclick="document.getElementById('_userEditorModal').remove()">✕</button>
+      <div class="modal-title">👤 Kullanıcı Düzenle — ${u.name}</div>
+      <div class="mbd">
+        <div class="form-grid">
+          <div class="form-group"><label>Ad Soyad *</label><input id="_euName" value="${u.name}"></div>
+          <div class="form-group"><label>Yeni Şifre (boş = değiştirme)</label><input id="_euPass" type="password" placeholder="••••••••"></div>
+          <div class="form-group"><label>Dil</label>
+            <select id="_euLang">
+              <option value="tr"${u.lang==='tr'?' selected':''}>🇹🇷 Türkçe</option>
+              <option value="en"${u.lang==='en'?' selected':''}>🇬🇧 English</option>
+              <option value="fr"${u.lang==='fr'?' selected':''}>🇫🇷 Français</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Durum</label>
+            <select id="_euActive">
+              <option value="true"${u.active!==false?' selected':''}>✅ Aktif</option>
+              <option value="false"${u.active===false?' selected':''}>⏸ Pasif</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:4px">
+          <label>Rol Şablonu (izinleri toplu uygular)</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="_euRole" style="flex:1">${roleOpts}</select>
+            <button class="btn btn-ghost btn-sm" onclick="_applyRolePreset()">Şablonu Uygula</button>
+          </div>
+        </div>
+        <div style="margin-top:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div class="slbl2" style="margin:0">⚡ Bireysel İzinler</div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-ghost btn-sm" onclick="document.querySelectorAll('._upchk').forEach(c=>c.checked=true)">Tümünü Ver</button>
+              <button class="btn btn-ghost btn-sm" onclick="document.querySelectorAll('._upchk').forEach(c=>c.checked=false)">Tümünü Al</button>
+            </div>
+          </div>
+          <div style="background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:12px;max-height:300px;overflow-y:auto">
+            ${permsHtml}
+          </div>
+        </div>
+      </div>
+      <div class="mft">
+        <button class="btn" onclick="document.getElementById('_userEditorModal').remove()">İptal</button>
+        <button class="btn btnp" onclick="_saveEditUser(${idx})">💾 Kaydet</button>
+      </div>
+    </div>`;
+  ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+  document.body.appendChild(ov);
 }
 
-let currentUser = null;
+function _applyRolePreset() {
+  const role = document.getElementById('_euRole')?.value;
+  const preset = ROLE_PRESETS[role] || [];
+  document.querySelectorAll('._upchk').forEach(c => {
+    c.checked = preset.includes(c.value);
+    c.closest('label').style.background = c.checked ? 'rgba(0,212,255,.07)' : 'transparent';
+  });
+}
+
+function _saveEditUser(idx) {
+  const name   = document.getElementById('_euName')?.value.trim();
+  const pass   = document.getElementById('_euPass')?.value;
+  const lang   = document.getElementById('_euLang')?.value;
+  const active = document.getElementById('_euActive')?.value === 'true';
+  const role   = document.getElementById('_euRole')?.value;
+  const perms  = Array.from(document.querySelectorAll('._upchk:checked')).map(c => c.value);
+  if (!name) { toast('Hata','Ad soyad boş olamaz','danger'); return; }
+  if (pass && pass.length < 4) { toast('Hata','Şifre en az 4 karakter','danger'); return; }
+  const users = getUsers();
+  users[idx] = { ...users[idx], name, lang, active, role, permissions:perms, updatedAt:new Date().toISOString().slice(0,19).replace('T',' ') };
+  if (pass) users[idx].password = pass;
+  saveUsers(users);
+  if (currentUser?.username === users[idx].username) {
+    currentUser = users[idx];
+    updateUserDisplay();
+    applyLanguage();
+    applyPermissions();
+  }
+  document.getElementById('_userEditorModal').remove();
+  renderUserTable();
+  toast('Güncellendi', name + ' güncellendi ✓', 'success');
+}
+
+// ── Audit log render ─────────────────────────────────────────────────────────
+function renderAuditLog() {
+  const el = document.getElementById('auditLogContent');
+  if (!el) return;
+  let logs = [];
+  try { logs = query('SELECT * FROM audit_log ORDER BY id DESC LIMIT 200'); } catch(e) {}
+  if (!logs.length) { el.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:12px">Henüz kayıt yok</div>'; return; }
+  const icons = {login:'🔑',logout:'🚪',export_db:'💾',import_db:'📂',add:'➕',edit:'✏️',delete:'🗑'};
+  el.innerHTML = `<div style="max-height:340px;overflow-y:auto">
+    <table><thead><tr><th>Zaman</th><th>Kullanıcı</th><th>İşlem</th><th>Hedef</th><th>Detay</th></tr></thead>
+    <tbody>${logs.map(l=>`<tr>
+      <td class="mono" style="font-size:10px;white-space:nowrap">${l.ts||'—'}</td>
+      <td style="font-weight:600;font-size:12px">${l.username||'—'}</td>
+      <td style="font-size:12px">${icons[l.action]||'•'} ${l.action||'—'}</td>
+      <td style="font-size:11px;color:var(--text3)">${l.target||'—'}</td>
+      <td style="font-size:11px">${l.detail||'—'}</td>
+    </tr>`).join('')}</tbody></table></div>`;
+}
+
+// ── Version history render ───────────────────────────────────────────────────
+function renderVersionHistory() {
+  const el = document.getElementById('versionHistoryContent');
+  if (!el) return;
+  let dbHist = [];
+  try { dbHist = query('SELECT * FROM version_history ORDER BY id DESC'); } catch(e) {}
+
+  el.innerHTML = CHANGELOG_DATA.map((cl, i) => {
+    const db_entry = dbHist.find(r => r.version === cl.version);
+    return `<div class="changelog-item">
+      <div>
+        <div class="cl-ver">${cl.version}</div>
+        <div class="cl-ts">${db_entry ? db_entry.ts : cl.timestamp}</div>
+        ${i===0?'<span style="font-size:9px;background:rgba(0,212,255,.15);color:var(--accent);border:1px solid rgba(0,212,255,.3);border-radius:3px;padding:1px 6px;margin-top:4px;display:inline-block">GÜNCEL</span>':''}
+        ${db_entry?.author?`<div style="font-size:10px;color:var(--text3);margin-top:2px">👤 ${db_entry.author}</div>`:''}
+      </div>
+      <div style="flex:1"><ul class="cl-items">${cl.items.map(item=>`<li>${item}</li>`).join('')}</ul></div>
+    </div>`;
+  }).join('');
+}
+
+function promptChangePassword(idx) { openUserEditor(idx); }
 
 function doLogin() {
   const username = document.getElementById('loginUser').value.trim();
@@ -4670,26 +5235,45 @@ function doLogin() {
     document.getElementById('loginPass').focus();
     return;
   }
+  // Check if account is active
+  if (user.active === false) {
+    const errEl2 = document.getElementById('loginError');
+    errEl2.textContent = UI_STRINGS[loginLang].loginDisabled || 'Hesabınız devre dışı. Yönetici ile iletişime geçin.';
+    errEl2.classList.add('show');
+    document.getElementById('loginPass').value = '';
+    return;
+  }
   currentUser = user;
-  // Apply user's preferred lang
+  // Record last login time
+  const allUsers = getUsers();
+  const userIdx = allUsers.findIndex(u => u.username === username);
+  if (userIdx !== -1) {
+    allUsers[userIdx].lastLogin = new Date().toISOString().slice(0,19).replace('T',' ');
+    saveUsers(allUsers);
+    currentUser = allUsers[userIdx];
+  }
   currentLang = user.lang || 'tr';
-  // Hide login, show app
   const ls = document.getElementById('loginScreen');
   ls.classList.add('hide');
   setTimeout(() => { ls.style.display = 'none'; }, 400);
   document.getElementById('appRoot').style.display = 'block';
-  // Update user display
   updateUserDisplay();
   applyLanguage();
-  // Init app
-  init();
+  applyPermissions();
+  init().then(() => {
+    auditLog('login', 'auth', 'Giriş yapıldı');
+    saveDB();
+    recordVersionHistory();
+  });
   loadTheme();
-  toast('Hoş Geldiniz', `${user.name} olarak giriş yapıldı ✓`, 'success');
+  toast('Hoş Geldiniz', user.name + ' olarak giriş yapıldı ✓', 'success');
 }
 
 function doLogout() {
   if (!confirm(UI_STRINGS[currentLang].logoutConfirm || 'Çıkış yapmak istediğinizden emin misiniz?')) return;
+  try { auditLog('logout', 'auth', 'Çıkış yapıldı'); saveDB(); } catch(e) {}
   currentUser = null;
+  db = null;
   document.getElementById('appRoot').style.display = 'none';
   const ls = document.getElementById('loginScreen');
   ls.style.display = 'flex';
@@ -4763,6 +5347,7 @@ const UI_STRINGS = {
     loginError: 'Hatalı kullanıcı adı veya şifre',
     loginEmpty: 'Kullanıcı adı ve şifre zorunludur',
     logoutConfirm: 'Çıkış yapmak istediğinizden emin misiniz?',
+    loginDisabled: 'Hesabınız devre dışı bırakıldı. Lütfen yöneticinizle iletişime geçin.',
     addShipment: '+ Konteynır Ekle',
     navDashboard: 'Dashboard',
     navShipments: 'Konteynırlar',
@@ -4798,6 +5383,7 @@ const UI_STRINGS = {
     loginError: 'Invalid username or password',
     loginEmpty: 'Username and password are required',
     logoutConfirm: 'Are you sure you want to log out?',
+    loginDisabled: 'Your account has been disabled. Please contact your administrator.',
     addShipment: '+ Add Container',
     navDashboard: 'Dashboard',
     navShipments: 'Containers',
@@ -4833,6 +5419,7 @@ const UI_STRINGS = {
     loginError: 'Nom d\'utilisateur ou mot de passe incorrect',
     loginEmpty: 'Le nom d\'utilisateur et le mot de passe sont obligatoires',
     logoutConfirm: 'Êtes-vous sûr de vouloir vous déconnecter?',
+    loginDisabled: "Votre compte a été désactivé. Veuillez contacter votre administrateur.",
     addShipment: '+ Ajouter Conteneur',
     navDashboard: 'Tableau de Bord',
     navShipments: 'Conteneurs',
@@ -5081,16 +5668,20 @@ function renderSuggestions() {
 // ===================== CHANGELOG =====================
 const CHANGELOG_DATA = [
   {
-    version: 'v3.0',
-    timestamp: '2026-03-16 14:30:00',
+    version: 'v4.0',
+    timestamp: '2026-03-16 17:00:00',
     items: [
+      'Kullanıcı başına izole veritabanı — kimse kimsenin verisini göremez',
+      '19 ayrı izin ile granüler yetki sistemi',
+      '6 hazır rol şablonu: Süper Admin, Yönetici, Operatör, Görüntüleyici, Muhasebe, Özel',
+      'Kullanıcı düzenleme modalı — izinler checkbox ile bireysel ayarlanır',
+      'Hesap aktif/pasif durumu — pasif kullanıcılar giriş yapamaz',
+      'Sürüm geçmişi — giriş sırasında otomatik olarak DB kaydedilir',
+      'Denetim kaydı (Audit Log) — her işlem zaman damgalı kayıt altına alınır',
       'Login ekranı — TR/EN/FR dil desteği, gece/gündüz modu, canlı saat',
-      'Kullanıcı yönetimi — admin, operatör, görüntüleyici rolleri',
-      'Çoklu dil desteği (TR/EN/FR) — tüm arayüz metinleri',
-      'Kullanıcı menüsü — avatar, rol, çıkış butonu',
-      'Geliştirme Önerileri sayfası — oylama, kategori, durum takibi',
-      'Sürüm Notları sayfası — tam güncelleme geçmişi ve zaman damgaları',
-      'Versiyon badge ve build timestamp her sayfada görünür',
+      'Yurt İçi Lojistik modülü — kamyon takibi, FTL/LTL',
+      'Sigorta Yönetimi — poliçe ve hasar takibi',
+      'Kara Lojistik Hile Uyarıları — kamyoncu ve lojistik şirket hileleri',
     ]
   },
   {
@@ -5131,24 +5722,45 @@ const CHANGELOG_DATA = [
 function renderChangelog() {
   const el = document.getElementById('changelogContent');
   if (!el) return;
-  // Update current version badge
   const cvb = document.getElementById('currentVerBadge');
   if (cvb) cvb.textContent = BUILD_VERSION;
-  el.innerHTML = CHANGELOG_DATA.map((cl, idx) => `
-    <div class="card" style="margin-bottom:16px">
+
+  let dbHist = [];
+  try { dbHist = query('SELECT * FROM version_history ORDER BY id DESC'); } catch(e) {}
+
+  // Section: DB-recorded sessions
+  let dbSection = '';
+  if (dbHist.length > 0) {
+    const rows = dbHist.map(r => `<tr>
+      <td><span class="mono" style="color:var(--accent);font-weight:700">${r.version}</span></td>
+      <td class="mono" style="font-size:11px">${r.ts}</td>
+      <td style="font-size:12px">${r.author}</td>
+    </tr>`).join('');
+    dbSection = `<div class="card" style="margin-bottom:16px;border-color:rgba(0,212,255,.25)">
+      <div class="card-title">🗄️ Bu Kurulumda Çalışan Sürümler
+        <span style="font-size:11px;font-weight:400;color:var(--text3);margin-left:8px">Giriş sırasında otomatik kaydedilir</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table><thead><tr><th>Sürüm</th><th>Tarih & Saat</th><th>Kullanıcı</th></tr></thead>
+        <tbody>${rows}</tbody></table>
+      </div>
+    </div>`;
+  }
+
+  // Static changelog
+  const staticSection = CHANGELOG_DATA.map((cl, idx) => `
+    <div class="card" style="margin-bottom:12px">
       <div class="changelog-item">
         <div>
           <div class="cl-ver">${cl.version}</div>
           <div class="cl-ts">${cl.timestamp}</div>
-          ${idx === 0 ? `<span style="font-size:9px;background:rgba(0,212,255,.15);color:var(--accent);border:1px solid rgba(0,212,255,.3);border-radius:3px;padding:1px 6px;margin-top:4px;display:inline-block;font-family:'JetBrains Mono',monospace">GÜNCEL</span>` : ''}
+          ${idx === 0 ? '<span style="font-size:9px;background:rgba(0,212,255,.15);color:var(--accent);border:1px solid rgba(0,212,255,.3);border-radius:3px;padding:1px 6px;margin-top:4px;display:inline-block">GÜNCEL</span>' : ''}
         </div>
-        <div style="flex:1">
-          <ul class="cl-items">
-            ${cl.items.map(i => `<li>${i}</li>`).join('')}
-          </ul>
-        </div>
+        <div style="flex:1"><ul class="cl-items">${cl.items.map(i => '<li>'+i+'</li>').join('')}</ul></div>
       </div>
     </div>`).join('');
+
+  el.innerHTML = dbSection + staticSection;
 }
 
 // Hook changelog and suggestions to showPage
@@ -5205,14 +5817,14 @@ function showShortcuts() {
       <button class="modal-close" onclick="document.getElementById('shortcutsModal').remove()">✕</button>
       <div class="modal-title">⌨️ Klavye Kısayolları</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        ${[
-          ['1','Dashboard'],['2','Konteynırlar'],['3','Alarmlar'],
-          ['4','Alış Fiyatları'],['5','RFQ'],['6','Teklifler'],
-          ['N','Yeni Konteynır (modal)'],['Esc','Modalı kapat / Dropdown kapat'],
-        ].map(([k,l])=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--navy2);border-radius:6px;border:1px solid var(--border)">
-          <kbd style="background:var(--navy3);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--accent);min-width:30px;text-align:center">${k}</kbd>
-          <span style="font-size:13px;color:var(--text2)">${l}</span>
-        </div>`).join('')}
+         <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--navy2);border-radius:6px;border:1px solid var(--border)"><kbd style="background:var(--navy3);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--accent);min-width:30px;text-align:center">1</kbd><span style="font-size:13px;color:var(--text2)">Dashboard</span></div>
+         <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--navy2);border-radius:6px;border:1px solid var(--border)"><kbd style="background:var(--navy3);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--accent);min-width:30px;text-align:center">2</kbd><span style="font-size:13px;color:var(--text2)">Konteynırlar</span></div>
+         <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--navy2);border-radius:6px;border:1px solid var(--border)"><kbd style="background:var(--navy3);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--accent);min-width:30px;text-align:center">3</kbd><span style="font-size:13px;color:var(--text2)">Alarmlar</span></div>
+         <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--navy2);border-radius:6px;border:1px solid var(--border)"><kbd style="background:var(--navy3);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--accent);min-width:30px;text-align:center">4</kbd><span style="font-size:13px;color:var(--text2)">Alış Fiyatları</span></div>
+         <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--navy2);border-radius:6px;border:1px solid var(--border)"><kbd style="background:var(--navy3);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--accent);min-width:30px;text-align:center">5</kbd><span style="font-size:13px;color:var(--text2)">RFQ</span></div>
+         <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--navy2);border-radius:6px;border:1px solid var(--border)"><kbd style="background:var(--navy3);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--accent);min-width:30px;text-align:center">6</kbd><span style="font-size:13px;color:var(--text2)">Teklifler</span></div>
+         <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--navy2);border-radius:6px;border:1px solid var(--border)"><kbd style="background:var(--navy3);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--accent);min-width:30px;text-align:center">N</kbd><span style="font-size:13px;color:var(--text2)">Yeni Konteynır</span></div>
+         <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--navy2);border-radius:6px;border:1px solid var(--border)"><kbd style="background:var(--navy3);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--accent);min-width:30px;text-align:center">Esc</kbd><span style="font-size:13px;color:var(--text2)">Kapat</span></div>
       </div>
       <div style="margin-top:16px;padding:12px;background:var(--navy2);border-radius:6px;border:1px solid var(--border);font-size:12px;color:var(--text3)">
         💡 <strong style="color:var(--text2)">İpucu:</strong> Tablo satırlarına <strong style="color:var(--accent)">çift tıklayın</strong> → Detay paneli açılır.
@@ -5223,6 +5835,317 @@ function showShortcuts() {
     </div>`;
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
   document.body.appendChild(overlay);
+}
+
+
+// ===================== DOMESTIC LOGISTICS =====================
+const DOMESTIC_SCHEMA = 'CREATE TABLE IF NOT EXISTS domestic (id INTEGER PRIMARY KEY AUTOINCREMENT, no TEXT, musteri TEXT, tip TEXT, plaka TEXT, surucu TEXT, surucu_tel TEXT, nakliyeci TEXT, cikis TEXT, varis TEXT, yukleme TEXT, teslim TEXT, fiili_teslim TEXT, kargo TEXT, agirlik REAL, hacim REAL, sigorta TEXT, ucret REAL, durum TEXT, notlar TEXT, created_at TEXT DEFAULT (datetime("now")))';
+
+function ensureDomesticTable() {
+  try { db.run(DOMESTIC_SCHEMA); } catch(e) {}
+}
+
+function generateDomNo() {
+  const y = new Date().getFullYear();
+  try {
+    ensureDomesticTable();
+    const r = query('SELECT COUNT(*) as c FROM domestic');
+    return 'SV-' + y + '-' + String((r[0]?.c||0)+1).padStart(3,'0');
+  } catch { return 'SV-' + y + '-001'; }
+}
+
+function saveDomestic() {
+  ensureDomesticTable();
+  const id = document.getElementById('editDomId').value;
+  const no = document.getElementById('domNo').value || generateDomNo();
+  const vals = [
+    no, document.getElementById('domMusteri').value,
+    document.getElementById('domTip').value, document.getElementById('domPlaka').value,
+    document.getElementById('domSurucu').value, document.getElementById('domSurucuTel').value,
+    document.getElementById('domNakliyeci').value, document.getElementById('domCikis').value,
+    document.getElementById('domVaris').value, document.getElementById('domYukleme').value||null,
+    document.getElementById('domTeslim').value||null, document.getElementById('domFiiliTeslim').value||null,
+    document.getElementById('domKargo').value, parseFloat(document.getElementById('domAgirlik').value)||null,
+    parseFloat(document.getElementById('domHacim').value)||null,
+    document.getElementById('domSigorta').value, parseFloat(document.getElementById('domUcret').value)||null,
+    document.getElementById('domDurum').value, document.getElementById('domNot').value
+  ];
+  if (!vals[1] || !vals[7] || !vals[8]) { toast('Hata','Müşteri, çıkış ve varış zorunlu','danger'); return; }
+  if (id) {
+    db.run('UPDATE domestic SET no=?,musteri=?,tip=?,plaka=?,surucu=?,surucu_tel=?,nakliyeci=?,cikis=?,varis=?,yukleme=?,teslim=?,fiili_teslim=?,kargo=?,agirlik=?,hacim=?,sigorta=?,ucret=?,durum=?,notlar=? WHERE id=?', [...vals, id]);
+    toast('Güncellendi','Sevkiyat güncellendi','success');
+  } else {
+    db.run('INSERT INTO domestic (no,musteri,tip,plaka,surucu,surucu_tel,nakliyeci,cikis,varis,yukleme,teslim,fiili_teslim,kargo,agirlik,hacim,sigorta,ucret,durum,notlar) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', vals);
+    toast('Eklendi','Sevkiyat eklendi','success');
+  }
+  saveDB();
+  closeModal('domesticModal');
+  renderDomestic();
+}
+
+function renderDomestic() {
+  ensureDomesticTable();
+  const search = (document.getElementById('domSearch')?.value||'').toLowerCase();
+  const typeF = document.getElementById('domTypeFilter')?.value||'';
+  const statusF = document.getElementById('domStatusFilter')?.value||'';
+  let rows = query('SELECT * FROM domestic ORDER BY id DESC');
+  if (search) rows = rows.filter(r => (r.musteri+r.plaka+r.cikis+r.varis+r.kargo+r.no).toLowerCase().includes(search));
+  if (typeF) rows = rows.filter(r => r.tip === typeF);
+  if (statusF) rows = rows.filter(r => r.durum === statusF);
+
+  // Stats
+  const statsEl = document.getElementById('domesticStats');
+  if (statsEl) {
+    const total = rows.length;
+    const yolda = rows.filter(r=>r.durum==='Yolda').length;
+    const gecikme = rows.filter(r=>r.durum==='Gecikme').length;
+    const totalUcret = rows.reduce((a,r)=>a+(r.ucret||0),0);
+    statsEl.innerHTML = [
+      {l:'Toplam Sevkiyat',v:total,c:'var(--accent)',d:'kayıt'},
+      {l:'Yolda',v:yolda,c:'var(--gold)',d:'aktif'},
+      {l:'Gecikme',v:gecikme,c:gecikme>0?'var(--red)':'var(--gn)',d:'uyarı'},
+      {l:'Toplam Ücret',v:'₺'+totalUcret.toLocaleString(),c:'var(--green)',d:'TRY'},
+    ].map(s=>`<div class="stat-card blue"><div class="stat-label">${s.l}</div><div class="stat-value" style="color:${s.c};font-size:${typeof s.v==='string'?'18':'28'}px">${s.v}</div><div class="stat-sub">${s.d}</div></div>`).join('');
+  }
+
+  const tbody = document.getElementById('domesticTable');
+  if (!tbody) return;
+  const statusColors = {'Planlandı':'var(--text3)','Yolda':'var(--accent)','Teslim Edildi':'var(--green)','Gecikme':'var(--red)','İptal':'var(--text3)'};
+  tbody.innerHTML = rows.length === 0
+    ? '<tr><td colspan="11"><div class="empty-state"><div class="empty-state-icon">🚛</div><div class="empty-state-title">Sevkiyat bulunamadı</div><div class="empty-state-sub">İlk sevkiyatı ekleyin</div></div></td></tr>'
+    : rows.map(r => `<tr>
+        <td class="mono" style="color:var(--accent);font-size:11px">${r.no||'—'}</td>
+        <td style="font-weight:600">${r.musteri||'—'}</td>
+        <td><span class="tag">${r.tip||'—'}</span></td>
+        <td class="mono" style="font-size:11px;color:var(--gold)">${r.plaka||'—'}</td>
+        <td style="font-size:12px">${r.surucu||'—'}</td>
+        <td style="font-size:11px">${r.cikis||'—'}</td>
+        <td style="font-size:11px">${r.varis||'—'}</td>
+        <td class="mono" style="font-size:11px">${r.yukleme||'—'}</td>
+        <td class="mono" style="color:var(--accent)">${r.ucret?'₺'+r.ucret.toLocaleString():'—'}</td>
+        <td><span class="status" style="background:${statusColors[r.durum]||'var(--text3)'}22;color:${statusColors[r.durum]||'var(--text3)'}">${r.durum||'—'}</span></td>
+        <td><div style="display:flex;gap:4px">
+          <button class="btn btn-ghost btn-sm" onclick="editDomestic(${r.id})">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteDomestic(${r.id})">🗑</button>
+        </div></td>
+      </tr>`).join('');
+}
+
+function editDomestic(id) {
+  ensureDomesticTable();
+  const r = query('SELECT * FROM domestic WHERE id=?',[id])[0];
+  if (!r) return;
+  document.getElementById('editDomId').value = id;
+  document.getElementById('domesticModalTitle').textContent = 'Sevkiyat Düzenle';
+  ['domNo','domMusteri','domTip','domPlaka','domSurucu','domSurucuTel','domNakliyeci',
+   'domCikis','domVaris','domYukleme','domTeslim','domFiiliTeslim','domKargo',
+   'domAgirlik','domHacim','domSigorta','domUcret','domDurum','domNot'].forEach(k => {
+    const fieldMap = {domNo:'no',domMusteri:'musteri',domTip:'tip',domPlaka:'plaka',
+      domSurucu:'surucu',domSurucuTel:'surucu_tel',domNakliyeci:'nakliyeci',
+      domCikis:'cikis',domVaris:'varis',domYukleme:'yukleme',domTeslim:'teslim',
+      domFiiliTeslim:'fiili_teslim',domKargo:'kargo',domAgirlik:'agirlik',
+      domHacim:'hacim',domSigorta:'sigorta',domUcret:'ucret',domDurum:'durum',domNot:'notlar'};
+    const el = document.getElementById(k);
+    if (el) el.value = r[fieldMap[k]]||'';
+  });
+  openModal('domesticModal');
+}
+
+function deleteDomestic(id) {
+  if (!confirm('Sevkiyatı silmek istediğinizden emin misiniz?')) return;
+  db.run('DELETE FROM domestic WHERE id=?',[id]);
+  saveDB(); renderDomestic(); toast('Silindi','Sevkiyat silindi','warn');
+}
+
+function exportDomesticCSV() {
+  ensureDomesticTable();
+  const rows = query('SELECT * FROM domestic ORDER BY id DESC');
+  const hdrs = ['No','Müşteri','Tip','Plaka','Sürücü','Çıkış','Varış','Yükleme','Teslim','Kargo','Ağırlık','Ücret','Durum'];
+  exportCSV(rows.map(r=>({'No':r.no,'Müşteri':r.musteri,'Tip':r.tip,'Plaka':r.plaka,'Sürücü':r.surucu,'Çıkış':r.cikis,'Varış':r.varis,'Yükleme':r.yukleme,'Teslim':r.fiili_teslim||r.teslim,'Kargo':r.kargo,'Ağırlık':r.agirlik,'Ücret':r.ucret,'Durum':r.durum})), hdrs, 'YurtIci_Sevkiyat.csv');
+}
+
+// ===================== INSURANCE =====================
+const INS_SCHEMA = 'CREATE TABLE IF NOT EXISTS insurance (id INTEGER PRIMARY KEY AUTOINCREMENT, police_no TEXT, sirket TEXT, kapsam TEXT, baslangic TEXT, bitis TEXT, tutar REAL, curr TEXT, prim REAL, muafiyet TEXT, acente TEXT, notlar TEXT, durum TEXT DEFAULT "Aktif", created_at TEXT DEFAULT (datetime("now")))';
+const CLAIM_SCHEMA = 'CREATE TABLE IF NOT EXISTS claims (id INTEGER PRIMARY KEY AUTOINCREMENT, bildirim_no TEXT, police_no TEXT, sevkiyat TEXT, tur TEXT, tarih TEXT, hasar_tutar REAL, eksper TEXT, aciklama TEXT, durum TEXT DEFAULT "Açık", created_at TEXT DEFAULT (datetime("now")))';
+
+function ensureInsuranceTables() {
+  try { db.run(INS_SCHEMA); db.run(CLAIM_SCHEMA); } catch(e) {}
+}
+
+function saveInsurance() {
+  ensureInsuranceTables();
+  const id = document.getElementById('editInsId').value;
+  const vals = [
+    document.getElementById('insPoliceNo').value,
+    document.getElementById('insŞirket').value,
+    document.getElementById('insKapsam').value,
+    document.getElementById('insBaslangic').value||null,
+    document.getElementById('insBitis').value||null,
+    parseFloat(document.getElementById('insTutar').value)||null,
+    document.getElementById('insCurr').value,
+    parseFloat(document.getElementById('insPrim').value)||null,
+    document.getElementById('insMuafiyet').value,
+    document.getElementById('insAcente').value,
+    document.getElementById('insNot').value
+  ];
+  if (!vals[0]||!vals[1]) { toast('Hata','Poliçe no ve şirket zorunlu','danger'); return; }
+  if (id) {
+    db.run('UPDATE insurance SET police_no=?,sirket=?,kapsam=?,baslangic=?,bitis=?,tutar=?,curr=?,prim=?,muafiyet=?,acente=?,notlar=? WHERE id=?',[...vals,id]);
+    toast('Güncellendi','Poliçe güncellendi','success');
+  } else {
+    db.run('INSERT INTO insurance (police_no,sirket,kapsam,baslangic,bitis,tutar,curr,prim,muafiyet,acente,notlar) VALUES (?,?,?,?,?,?,?,?,?,?,?)',vals);
+    toast('Eklendi','Poliçe eklendi','success');
+  }
+  saveDB(); closeModal('insuranceModal'); renderInsurance();
+}
+
+function saveClaim() {
+  ensureInsuranceTables();
+  const y=new Date().getFullYear();
+  const cnt=query('SELECT COUNT(*) as c FROM claims')[0]?.c||0;
+  const no='HSR-'+y+'-'+String(cnt+1).padStart(3,'0');
+  const vals = [
+    no, document.getElementById('claimPolice').value,
+    document.getElementById('claimSevkiyat').value,
+    document.getElementById('claimTur').value,
+    document.getElementById('claimTarih').value||null,
+    parseFloat(document.getElementById('claimTutar').value)||null,
+    document.getElementById('claimEksper').value,
+    document.getElementById('claimAciklama').value
+  ];
+  if (!vals[2]||!vals[7]) { toast('Hata','Poliçe no ve açıklama zorunlu','danger'); return; }
+  db.run('INSERT INTO claims (bildirim_no,police_no,sevkiyat,tur,tarih,hasar_tutar,eksper,aciklama) VALUES (?,?,?,?,?,?,?,?)',vals);
+  saveDB(); closeModal('claimModal'); renderInsurance(); toast('Bildirildi','Hasar bildirimi kaydedildi','success');
+}
+
+function renderInsurance() {
+  ensureInsuranceTables();
+  const today = new Date().toISOString().split('T')[0];
+  const policies = query('SELECT * FROM insurance ORDER BY id DESC');
+  const claims = query('SELECT * FROM claims ORDER BY id DESC');
+
+  // Stats
+  const statsEl = document.getElementById('insuranceStats');
+  if (statsEl) {
+    const active = policies.filter(p=>!p.bitis||p.bitis>=today).length;
+    const expiring = policies.filter(p=>p.bitis&&p.bitis>=today&&p.bitis<=(new Date(Date.now()+30*864e5).toISOString().split('T')[0])).length;
+    const openClaims = claims.filter(c=>c.durum==='Açık').length;
+    const totalPrim = policies.reduce((a,p)=>a+(p.prim||0),0);
+    statsEl.innerHTML = [
+      {l:'Aktif Poliçe',v:active,c:'var(--accent)',d:'adet'},
+      {l:'30 Günde Bitiyor',v:expiring,c:expiring>0?'var(--red)':'var(--green)',d:'poliçe'},
+      {l:'Açık Hasar',v:openClaims,c:openClaims>0?'var(--red)':'var(--green)',d:'bildirim'},
+      {l:'Yıllık Prim',v:'₺'+totalPrim.toLocaleString(),c:'var(--gold)',d:'TRY'},
+    ].map(s=>`<div class="stat-card blue"><div class="stat-label">${s.l}</div><div class="stat-value" style="color:${s.c};font-size:${typeof s.v==='string'?'18':'28'}px">${s.v}</div><div class="stat-sub">${s.d}</div></div>`).join('');
+  }
+
+  // Policies table
+  const polTable = document.getElementById('insurancePoliciesTable');
+  if (polTable) {
+    polTable.innerHTML = policies.length === 0
+      ? '<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--text3)">Poliçe bulunamadı</td></tr>'
+      : policies.map(p => {
+          const expired = p.bitis && p.bitis < today;
+          const expiringSoon = p.bitis && p.bitis >= today && p.bitis <= (new Date(Date.now()+30*864e5).toISOString().split('T')[0]);
+          return `<tr style="${expired?'opacity:.5':''}">
+            <td class="mono" style="color:var(--accent)">${p.police_no}</td>
+            <td style="font-weight:600">${p.sirket}</td>
+            <td style="font-size:12px">${p.kapsam}</td>
+            <td class="mono" style="font-size:11px">${p.baslangic||'—'}</td>
+            <td class="mono" style="font-size:11px;color:${expired?'var(--red)':expiringSoon?'var(--gold)':'var(--text3)'}">${p.bitis||'—'}${expiringSoon?' ⚠️':''}</td>
+            <td class="mono">${p.tutar?p.curr+' '+p.tutar.toLocaleString():'—'}</td>
+            <td class="mono">₺${p.prim?p.prim.toLocaleString():'—'}</td>
+            <td><span class="status ${expired?'status-alert':'status-ok'}">${expired?'Süresi Doldu':'Aktif'}</span></td>
+            <td><div style="display:flex;gap:4px">
+              <button class="btn btn-danger btn-sm" onclick="if(confirm('Sil?')){db.run('DELETE FROM insurance WHERE id=?',[${p.id}]);saveDB();renderInsurance();}">🗑</button>
+            </div></td>
+          </tr>`;
+        }).join('');
+  }
+
+  // Claims table
+  const clTable = document.getElementById('insuranceClaimsTable');
+  if (clTable) {
+    clTable.innerHTML = claims.length === 0
+      ? '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text3)">Hasar bildirimi bulunamadı</td></tr>'
+      : claims.map(c => `<tr>
+          <td class="mono" style="color:var(--red)">${c.bildirim_no}</td>
+          <td class="mono">${c.police_no}</td>
+          <td style="font-size:12px">${c.sevkiyat||'—'}</td>
+          <td><span class="tag tr">${c.tur}</span></td>
+          <td class="mono" style="color:var(--red)">${c.hasar_tutar?'₺'+c.hasar_tutar.toLocaleString():'—'}</td>
+          <td class="mono" style="font-size:11px">${c.tarih||'—'}</td>
+          <td><span class="status status-${c.durum==='Kapandı'?'ok':c.durum==='İncelemede'?'warn':'alert'}">${c.durum}</span></td>
+          <td><div style="display:flex;gap:4px">
+            <select style="font-size:11px;padding:2px 6px" onchange="db.run('UPDATE claims SET durum=? WHERE id=?',[this.value,${c.id}]);saveDB();renderInsurance()">
+              <option${c.durum==='Açık'?' selected':''}>Açık</option>
+              <option${c.durum==='İncelemede'?' selected':''}>İncelemede</option>
+              <option${c.durum==='Kapandı'?' selected':''}>Kapandı</option>
+            </select>
+            <button class="btn btn-danger btn-sm" onclick="if(confirm('Sil?')){db.run('DELETE FROM claims WHERE id=?',[${c.id}]);saveDB();renderInsurance();}">🗑</button>
+          </div></td>
+        </tr>`).join('');
+  }
+}
+
+// ===================== FRAUD DOMESTIC =====================
+function renderFraudDomestic() {
+  const truck = [
+    { type:'danger', title:'Yük Hortumlamak (Partial Theft)', desc:'Sürücü veya yardımcı, teslimatta "eksik yükleme" bahanesiyle bir kısmını alıkoymaktadır. Mühürlü konteyner/araç + sayım teslim tutanağı zorunlu tutun.' },
+    { type:'danger', title:'Sahte Hasar Bildirimi', desc:'Bilerek hasar verdirip sigorta parası almak için hasarlı teslim tutanağı düzenlenir. Video ile yükleme ve teslim belgeleyin, karşı eksper talep edin.' },
+    { type:'warn', title:'Sahte Plaka / Araç Değiştirme', desc:'Booking alınan araç yerine farklı, sigortalı olmayan bir araç gönderilir. Her sevkiyatta plaka + sürücü kimliği teyidini yazılı alın.' },
+    { type:'warn', title:'Fatura Şişirmesi', desc:'Gerçek maliyetin üzerinde yakıt, yol, köprü ücretleri faturaya eklenir. Piyasa fiyatı kıyaslaması yapın, belge talebi şart.' },
+    { type:'warn', title:'Uzun Rota Kasıtlı Seçimi', desc:'Sürücü daha uzun yol seçerek km başına ücret ve yakıt faturasını artırır. GPS takip sistemi veya filo yönetim yazılımı kullanın.' },
+    { type:'danger', title:'İkinci El Mal Değiştirme', desc:'Orijinal ürün çalınıp yerine benzer görünümlü düşük kaliteli/sahte ürün konulur. Özellikle elektronik ve lüks malda yaygın. Seri no kontrolü yapın.' },
+    { type:'warn', title:'Sürücü Gözaltı / Kaza Bahane', desc:'Gerçekte olmayan kaza veya gözaltı bahane ederek yük geciktirilir, bu sürede ikinci satış yapılır. Gerçek zamanlı GPS ve 24 saat ulaşılabilirlik şart.' },
+  ];
+  const logistics = [
+    { type:'danger', title:'Navlun Farkı Cepleme', desc:'Müşteriye yüksek fiyat verilip taşıyıcıya daha düşük ödeme yapılır, fark aracı firma tarafından saklanır. Taşıyıcı fiyatı şeffaf sunmasını talep edin.' },
+    { type:'danger', title:'Sahte Sigorta Poliçesi', desc:'Müşteriye sigorta yaptırıldığı söylenir ancak gerçekte poliçe yoktur. Hasarda ödeme yapılmaz. Poliçeyi doğrudan sigorta şirketinden teyit edin.' },
+    { type:'warn', title:'Double Brokering', desc:'Yük arka arkaya birden fazla aracıya devredilir, sorumluluk bulanıklaşır. Son taşıyıcı kimliğini ve plakasını hep teyit edin.' },
+    { type:'warn', title:'Depo Zararı Gizleme', desc:'Ara depoda meydana gelen hasar gizlenerek müşteriye teslim edilir. "Hasarlı alındı" şerhi ve video kaydı zorunlu tutun.' },
+    { type:'danger', title:'Sahte Teslimat İmzası', desc:'Müşteri almadan teslim belgesi düzenlenir. Teslimatı mutlaka yetkili personelle + ıslak imzayla yapın, e-imza sistemleri kullanın.' },
+    { type:'warn', title:'Fatura Manipülasyonu', desc:'Gerçek dışı hizmet kalemleri (paketleme, etiketleme, depolama) faturaya eklenir. Sözleşmede kapsam net belirlensin, ekstra kalem kabul etmeyin.' },
+  ];
+  const cargo = [
+    { type:'danger', title:'İçi Boş Kutu / Underweight', desc:'Siparişin bir kısmı eksik gönderilir, kutular ağır görünmesi için doldurulur. Teslimatta tartım ve sayım zorunlu tutun.' },
+    { type:'warn', title:'Ürün Değiştirme', desc:'Sipariş edilen ürün yerine benzer ama ucuz alternatif gönderilir. Teslimatta ürün seri no ve özelliklerini kontrol edin.' },
+    { type:'danger', title:'Konşimento Tahrifatı', desc:'Ağırlık veya adet bilgisi değiştirilir. Gönderici ve alıcı tarafın ayrı ayrı kontrol ettiği dijital CMR/irsaliye kullanın.' },
+    { type:'warn', title:'Son Dakika Yük İptali', desc:'Avans alındıktan sonra yük kapasitesi olmadığı söylenir. Para iade edilmez veya gecikmeli iade yapılır. Avansı escrow hesapta tutun.' },
+  ];
+  const protection = [
+    { type:'tip', title:'GPS Takip Zorunluluğu', desc:'Her araçta çalışan GPS cihazı olmasını sözleşmeye ekleyin. Gerçek zamanlı konumu kendiniz takip edin. Araç durduğunda otomatik bildirim alın.' },
+    { type:'tip', title:'Sürücü Kimlik Teyidi', desc:'Her sevkiyat öncesi sürücü kimliği, ehliyet ve SRC belgesi fotokopisi alın. Kayıtlı olmayan sürücüyle çalışmayın.' },
+    { type:'tip', title:'Mühürlü Yükleme', desc:'Yükleme sonrası araç kapısını mühürleyin ve numarayı tutanağa yazın. Teslimatta mühür bütünlüğünü kontrol edin.' },
+    { type:'tip', title:'CMR Konvansiyonu', desc:'Uluslararası karayolu taşımacılığında CMR belgesi zorunludur. Tüm hasar ve kayıp talepleri için yasal güvence sağlar.' },
+    { type:'tip', title:'Yazılı Sözleşme Zorunluluğu', desc:'Her nakliye iş yazılı sözleşmeye bağlanmalı: fiyat, rota, süre, sorumluluk sınırı, sigorta, hasar tazminat şartları net belirlensin.' },
+    { type:'tip', title:'Referans Kontrolü', desc:'Yeni çalışmaya başladığınız nakliyeci firmayı araştırın. Sicil kaydı, vergi durumu, SRC yetki belgesi ve referanslarını kontrol edin.' },
+  ];
+
+  const render = items => items.map(i=>`
+    <div class="fraud-card ${i.type==='tip'?'tip':i.type==='warn'?'warn':''}">
+      <div class="fraud-tag">${i.type==='danger'?'⛔ TEHLİKE':i.type==='warn'?'⚠️ UYARI':'💡 ÖNERİ'}</div>
+      <div class="fraud-title">${i.title}</div>
+      <div class="fraud-desc">${i.desc}</div>
+    </div>`).join('');
+
+  const t = document.getElementById('fd-tab-truck');
+  const l = document.getElementById('fd-tab-logistics');
+  const c = document.getElementById('fd-tab-cargo');
+  const p = document.getElementById('fd-tab-protection');
+  if (t) t.innerHTML = render(truck);
+  if (l) l.innerHTML = render(logistics);
+  if (c) c.innerHTML = render(cargo);
+  if (p) p.innerHTML = render(protection);
+}
+
+// ===================== HOOK NEW PAGES INTO ROUTER =====================
+// showPage new pages handled inline in the original showPage override below
+
+function createSchema() {
+  _origCreateSchema();
+  ensureDomesticTable();
+  ensureInsuranceTables();
 }
 
 // Keyboard shortcuts (only active when logged in)
