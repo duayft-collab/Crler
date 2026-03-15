@@ -1,0 +1,4003 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreightPro — Konteyner & Navlun Yönetim Sistemi</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0a0f1e;
+    --navy2: #111827;
+    --navy3: #1a2235;
+    --card: #151d2e;
+    --border: #1e2d45;
+    --accent: #00d4ff;
+    --accent2: #0099cc;
+    --gold: #f59e0b;
+    --green: #10b981;
+    --red: #ef4444;
+    --orange: #f97316;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --text3: #64748b;
+    --radius: 12px;
+    --radius2: 8px;
+  }
+  body.light-mode {
+    --navy: #f0f4f8;
+    --navy2: #ffffff;
+    --navy3: #e8edf3;
+    --card: #ffffff;
+    --border: #d1d9e0;
+    --accent: #0077aa;
+    --accent2: #005f8a;
+    --text: #1a202c;
+    --text2: #4a5568;
+    --text3: #718096;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--navy);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  /* TOPBAR */
+  .topbar {
+    background: var(--navy2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px; color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--text2); font-size: 13px; font-family: 'Space Grotesk', sans-serif; font-weight: 400; }
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+  .badge-alert {
+    background: var(--red); color: #fff;
+    border-radius: 20px; padding: 3px 10px;
+    font-size: 11px; font-weight: 700;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+  .btn {
+    padding: 8px 18px; border-radius: var(--radius2);
+    border: none; cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px; font-weight: 600;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: var(--navy); }
+  .btn-primary:hover { background: #00b8d9; transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-danger:hover { background: #dc2626; }
+  .btn-gold { background: var(--gold); color: var(--navy); }
+  .btn-gold:hover { background: #d97706; }
+  .btn-green { background: var(--green); color: #fff; }
+  .btn-green:hover { background: #059669; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+  /* LAYOUT */
+  .layout { display: flex; min-height: calc(100vh - 60px); }
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px; background: var(--navy2);
+    border-right: 1px solid var(--border);
+    padding: 20px 0; flex-shrink: 0;
+    position: sticky; top: 60px; height: calc(100vh - 60px);
+    overflow-y: auto;
+  }
+  .nav-section { margin-bottom: 6px; }
+  .nav-label {
+    font-size: 10px; font-weight: 700; color: var(--text3);
+    letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 12px 20px 6px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; cursor: pointer;
+    color: var(--text2); font-size: 13px; font-weight: 500;
+    border-left: 3px solid transparent;
+    transition: all 0.18s;
+  }
+  .nav-item:hover { background: var(--navy3); color: var(--text); }
+  .nav-item.active {
+    background: rgba(0,212,255,0.08);
+    color: var(--accent);
+    border-left-color: var(--accent);
+  }
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+  /* MAIN */
+  .main { flex: 1; padding: 28px; overflow-y: auto; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .page-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .page-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 26px; color: var(--text);
+  }
+  .page-subtitle { font-size: 13px; color: var(--text3); margin-top: 2px; }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-size: 13px; font-weight: 700;
+    color: var(--text2); text-transform: uppercase;
+    letter-spacing: 0.8px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  /* STAT GRID */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px; margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    position: relative; overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .stat-card.blue::before { background: var(--accent); }
+  .stat-card.gold::before { background: var(--gold); }
+  .stat-card.green::before { background: var(--green); }
+  .stat-card.red::before { background: var(--red); }
+  .stat-card.orange::before { background: var(--orange); }
+  .stat-label { font-size: 11px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; }
+  .stat-value { font-size: 28px; font-weight: 700; margin: 6px 0 2px; font-family: 'JetBrains Mono', monospace; }
+  .stat-sub { font-size: 11px; color: var(--text3); }
+  .stat-icon { position: absolute; right: 16px; top: 16px; font-size: 28px; opacity: 0.15; }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    background: var(--navy2);
+    color: var(--text3); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.8px; text-transform: uppercase;
+    padding: 10px 14px; text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr {
+    border-bottom: 1px solid rgba(30,45,69,0.7);
+    transition: background 0.15s;
+  }
+  tbody tr:hover { background: var(--navy3); }
+  tbody td { padding: 12px 14px; color: var(--text2); vertical-align: middle; }
+  .mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+  /* STATUS BADGES */
+  .status {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700;
+  }
+  .status::before { content: '●'; font-size: 8px; }
+  .status-ok { background: rgba(16,185,129,0.15); color: var(--green); }
+  .status-warn { background: rgba(245,158,11,0.15); color: var(--gold); }
+  .status-alert { background: rgba(239,68,68,0.15); color: var(--red); }
+  .status-transit { background: rgba(0,212,255,0.15); color: var(--accent); }
+  .status-delivered { background: rgba(100,116,139,0.15); color: var(--text3); }
+
+  /* ALERT BOX */
+  .alert-box {
+    border-radius: var(--radius2);
+    padding: 14px 18px;
+    margin-bottom: 12px;
+    display: flex; align-items: flex-start; gap: 12px;
+    border-left: 4px solid;
+  }
+  .alert-box.danger { background: rgba(239,68,68,0.08); border-color: var(--red); }
+  .alert-box.warn { background: rgba(245,158,11,0.08); border-color: var(--gold); }
+  .alert-box.info { background: rgba(0,212,255,0.08); border-color: var(--accent); }
+  .alert-box.success { background: rgba(16,185,129,0.08); border-color: var(--green); }
+  .alert-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+  .alert-text { font-size: 12px; color: var(--text2); line-height: 1.6; }
+
+  /* FORM */
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; }
+  input, select, textarea {
+    background: var(--navy2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius2);
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,212,255,0.1);
+  }
+  textarea { resize: vertical; min-height: 80px; }
+  select option { background: var(--navy2); }
+  .form-actions { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 200;
+    align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    max-width: 700px; width: 100%;
+    max-height: 90vh; overflow-y: auto;
+    position: relative;
+  }
+  .modal-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px; margin-bottom: 20px;
+    padding-bottom: 16px; border-bottom: 1px solid var(--border);
+  }
+  .modal-close {
+    position: absolute; top: 20px; right: 20px;
+    background: none; border: none; color: var(--text3);
+    font-size: 20px; cursor: pointer; padding: 4px 8px;
+  }
+  .modal-close:hover { color: var(--text); }
+
+  /* TABS */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .tab {
+    padding: 10px 18px; cursor: pointer;
+    font-size: 13px; font-weight: 600; color: var(--text3);
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: all 0.2s;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab:hover { color: var(--text); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* CHART */
+  .chart-wrap { position: relative; height: 280px; }
+
+  /* QUOTE/OFFER */
+  .quote-header {
+    background: linear-gradient(135deg, var(--navy2) 0%, var(--navy3) 100%);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 28px; margin-bottom: 20px;
+  }
+  .quote-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--accent);
+    letter-spacing: 2px; margin-bottom: 8px;
+  }
+  .quote-title-big {
+    font-family: 'Instrument Serif', serif;
+    font-size: 32px; margin-bottom: 4px;
+  }
+
+  /* FILTER BAR */
+  .filter-bar {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    align-items: center; margin-bottom: 20px;
+  }
+  .filter-bar input, .filter-bar select {
+    max-width: 180px;
+  }
+  .search-input { min-width: 220px !important; max-width: 280px !important; }
+
+  /* PROGRESS BAR */
+  .progress-wrap { margin: 6px 0; }
+  .progress-bar {
+    height: 4px; background: var(--border);
+    border-radius: 2px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+  .progress-pct { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+  /* RISK/FRAUD SECTION */
+  .fraud-card {
+    border-radius: var(--radius2); padding: 16px 18px;
+    margin-bottom: 12px;
+    background: var(--navy2); border: 1px solid var(--border);
+    border-left: 4px solid var(--red);
+  }
+  .fraud-card.warn { border-left-color: var(--gold); }
+  .fraud-card.tip { border-left-color: var(--accent); }
+  .fraud-tag {
+    font-size: 10px; font-weight: 800; letter-spacing: 1.2px;
+    text-transform: uppercase; margin-bottom: 6px;
+  }
+  .fraud-card .fraud-tag { color: var(--red); }
+  .fraud-card.warn .fraud-tag { color: var(--gold); }
+  .fraud-card.tip .fraud-tag { color: var(--accent); }
+  .fraud-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+  .fraud-desc { font-size: 12px; color: var(--text2); line-height: 1.7; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--navy); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+  /* PRINT */
+  @media print {
+    .sidebar, .topbar, .btn, .form-actions, .filter-bar,
+    .page:not(.active), #rfqPreview > div:first-child,
+    .page-header { display: none !important; }
+    .main { padding: 0 !important; }
+    body { background: #fff !important; color: #000 !important; }
+    .card, .modal, .quote-header { background: #fff !important; border-color: #ccc !important; }
+    /* Show only the RFQ print doc */
+    #rfqPrintDoc { box-shadow: none !important; border: none !important; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    @page { margin: 10mm; size: A4 portrait; }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+
+  .tag {
+    display: inline-flex; align-items: center;
+    padding: 2px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 600;
+    background: rgba(0,212,255,0.1); color: var(--accent);
+    margin: 2px;
+  }
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 6px; top: 0; bottom: 0;
+    width: 2px; background: var(--border);
+  }
+  .timeline-item { position: relative; padding-bottom: 20px; }
+  .timeline-dot {
+    position: absolute; left: -21px; top: 2px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); border: 2px solid var(--navy2);
+  }
+  .timeline-dot.done { background: var(--green); }
+  .timeline-dot.alert { background: var(--red); }
+  .timeline-dot.pending { background: var(--border); }
+  .timeline-time { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+  .timeline-title { font-size: 13px; font-weight: 600; margin: 2px 0; }
+  .timeline-desc { font-size: 12px; color: var(--text2); }
+
+  .tooltip-info {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--border); color: var(--text3);
+    font-size: 10px; cursor: help; margin-left: 4px;
+  }
+
+  /* ===== COMBOBOX (Aranabilir Dropdown) ===== */
+  .cb-wrap { position: relative; }
+  .cb-input {
+    width: 100%; background: var(--navy2); border: 1px solid var(--border);
+    border-radius: var(--radius2); padding: 9px 36px 9px 12px;
+    color: var(--text); font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px; cursor: pointer; transition: border-color 0.2s;
+    box-sizing: border-box;
+  }
+  .cb-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,212,255,0.1); }
+  .cb-arrow {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    pointer-events: none; color: var(--text3); font-size: 11px;
+  }
+  .cb-dropdown {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    background: var(--card); border: 1px solid var(--accent);
+    border-radius: var(--radius2); z-index: 500;
+    max-height: 260px; overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    display: none;
+  }
+  .cb-dropdown.open { display: block; }
+  .cb-search {
+    width: 100%; background: var(--navy3); border: none;
+    border-bottom: 1px solid var(--border); padding: 9px 12px;
+    color: var(--text); font-size: 12px; font-family: 'Space Grotesk', sans-serif;
+    box-sizing: border-box;
+  }
+  .cb-search:focus { outline: none; background: var(--navy2); }
+  .cb-options { padding: 4px 0; }
+  .cb-option {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px; cursor: pointer; font-size: 13px;
+    color: var(--text2); transition: background 0.1s;
+  }
+  .cb-option:hover, .cb-option.selected { background: rgba(0,212,255,0.1); color: var(--text); }
+  .cb-option-logo { width: 22px; height: 22px; border-radius: 4px; object-fit: contain; background: #fff; padding: 2px; flex-shrink: 0; }
+  .cb-option-logo-placeholder { width: 22px; height: 22px; border-radius: 4px; background: var(--navy3); display:flex; align-items:center; justify-content:center; font-size:9px; color:var(--text3); flex-shrink:0; border: 1px solid var(--border); }
+  .cb-option-info { flex: 1; min-width: 0; }
+  .cb-option-name { font-weight: 600; font-size: 13px; }
+  .cb-option-sub { font-size: 10px; color: var(--text3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cb-option-alliance { font-size: 10px; padding: 1px 5px; border-radius: 3px; background: rgba(245,158,11,0.15); color: var(--gold); font-weight: 700; flex-shrink: 0; }
+  .cb-empty { padding: 12px 14px; font-size: 12px; color: var(--text3); text-align: center; }
+  .cb-section-head { padding: 6px 14px 3px; font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; border-top: 1px solid var(--border); margin-top: 4px; }
+
+  /* ===== UX IMPROVEMENTS ===== */
+  /* Fix table cell overflow */
+  tbody td { padding: 12px 14px; color: var(--text2); vertical-align: middle; max-width: 200px; }
+  tbody td .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px; display: block; }
+
+  /* Better form grid consistency - 2 col on wide, 1 on narrow */
+  .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; } }
+
+  /* Required field marker */
+  label .req { color: var(--red); margin-left: 2px; }
+
+  /* Field hint text */
+  .field-hint { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+  /* Port autocomplete */
+  .port-wrap { position: relative; }
+  .port-suggestions {
+    position: absolute; top: 100%; left: 0; right: 0; z-index: 400;
+    background: var(--card); border: 1px solid var(--accent);
+    border-radius: var(--radius2); max-height: 200px; overflow-y: auto;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: none;
+  }
+  .port-suggestions.open { display: block; }
+  .port-option {
+    padding: 8px 12px; cursor: pointer; font-size: 12px;
+    color: var(--text2); border-bottom: 1px solid var(--border);
+    display: flex; gap: 8px; align-items: center;
+  }
+  .port-option:hover { background: rgba(0,212,255,0.1); color: var(--text); }
+  .port-code { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: var(--accent); min-width: 40px; }
+
+  /* Keyboard shortcut badge */
+  .kbd { display: inline-block; background: var(--navy3); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--text3); }
+
+  /* Better empty state */
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--text3); }
+  .empty-state-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+  .empty-state-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; color: var(--text2); }
+  .empty-state-sub { font-size: 13px; }
+
+  /* Input group (prefix/suffix) */
+  .input-group { display: flex; align-items: stretch; }
+  .input-group input { border-radius: 0 var(--radius2) var(--radius2) 0; flex: 1; }
+  .input-prefix {
+    background: var(--navy3); border: 1px solid var(--border); border-right: none;
+    border-radius: var(--radius2) 0 0 var(--radius2);
+    padding: 9px 12px; font-size: 12px; color: var(--text3);
+    display: flex; align-items: center; white-space: nowrap; flex-shrink: 0;
+  }
+
+  /* Card hover for clickable cards */
+  .card-clickable { cursor: pointer; transition: border-color 0.2s, transform 0.15s; }
+  .card-clickable:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+  /* Sidebar collapse on click (mobile) */
+  .sidebar-toggle { display: none; }
+
+  /* Status pills - larger variant */
+  .pill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+  .pill-blue { background: rgba(0,212,255,0.12); color: var(--accent); }
+  .pill-green { background: rgba(16,185,129,0.12); color: var(--green); }
+  .pill-red { background: rgba(239,68,68,0.12); color: var(--red); }
+  .pill-gold { background: rgba(245,158,11,0.12); color: var(--gold); }
+
+  /* Quick action bar */
+  .quick-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .qa-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: var(--radius2);
+    background: var(--navy2); border: 1px solid var(--border);
+    color: var(--text2); font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .qa-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Page title with back breadcrumb */
+  .page-breadcrumb { font-size: 11px; color: var(--text3); margin-bottom: 4px; cursor: pointer; }
+  .page-breadcrumb:hover { color: var(--accent); }
+
+  /* Sticky form actions */
+  .sticky-actions {
+    position: sticky; bottom: 0; background: var(--navy);
+    border-top: 1px solid var(--border); padding: 14px 0;
+    margin-top: 20px; z-index: 50;
+  }
+  .toast-container {
+    position: fixed; bottom: 24px; right: 24px;
+    display: flex; flex-direction: column; gap: 8px;
+    z-index: 999;
+  }
+  .toast {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius2); padding: 14px 18px;
+    min-width: 280px; max-width: 380px;
+    border-left: 4px solid var(--accent);
+    animation: slideIn 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .toast.danger { border-left-color: var(--red); }
+  .toast.warn { border-left-color: var(--gold); }
+  .toast.success { border-left-color: var(--green); }
+  .toast-title { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+  .toast-msg { font-size: 12px; color: var(--text2); }
+  @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">
+    ⚓ FreightPro
+    <span>| Konteyner & Navlun Yönetim Sistemi</span>
+  </div>
+  <div class="topbar-right">
+    <div id="alertBadge" class="badge-alert" style="display:none">0 Alarm</div>
+    <button class="btn btn-ghost btn-sm" id="themeToggle" onclick="toggleTheme()" title="Gece/Gündüz Modu">🌙 Gece</button>
+    <button class="btn btn-ghost btn-sm" onclick="exportDB()" title="Veriyi .db dosyası olarak indir">💾 Yedekle</button>
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importFileInput').click()" title="Daha önce yedeklenen .db dosyasını geri yükle">📂 Geri Yükle</button>
+    <input type="file" id="importFileInput" accept=".db" style="display:none" onchange="importDB(this)">
+    <button class="btn btn-primary btn-sm" onclick="openModal('shipmentModal')">+ Konteynır Ekle</button>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="nav-section">
+      <div class="nav-label">Ana Menü</div>
+      <div class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-item" onclick="showPage('shipments')"><span class="nav-icon">📦</span> Konteynırlar</div>
+      <div class="nav-item" onclick="showPage('alerts')"><span class="nav-icon">🔔</span> Alarmlar</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Fiyat & Teklif</div>
+      <div class="nav-item" onclick="showPage('rates')"><span class="nav-icon">📈</span> Navlun Borsası</div>
+      <div class="nav-item" onclick="showPage('pricelist')"><span class="nav-icon">💰</span> Alış Fiyatları</div>
+      <div class="nav-item" onclick="showPage('rfq')"><span class="nav-icon">📨</span> Fiyat Talebi (RFQ)</div>
+      <div class="nav-item" onclick="showPage('quotes')"><span class="nav-icon">📋</span> Teklifler</div>
+      <div class="nav-item" onclick="showPage('newquote')"><span class="nav-icon">✏️</span> Yeni Teklif</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Bilgi & Risk</div>
+      <div class="nav-item" onclick="showPage('fraud')"><span class="nav-icon">⚠️</span> Hile Uyarıları</div>
+      <div class="nav-item" onclick="showPage('decision')"><span class="nav-icon">🎯</span> Karar Destek</div>
+      <div class="nav-item" onclick="showPage('messages')"><span class="nav-icon">✉️</span> Müşteri Mesajları</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Sistem</div>
+      <div class="nav-item" onclick="showPage('settings')"><span class="nav-icon">⚙️</span> Ayarlar</div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Dashboard</div>
+          <div class="page-subtitle">Genel operasyon özeti</div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-primary" onclick="openModal('shipmentModal')">+ Konteynır Ekle</button>
+        </div>
+      </div>
+
+      <div class="stats-grid" id="dashStats"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div class="card">
+          <div class="card-title">🔔 Aktif Alarmlar</div>
+          <div id="dashAlerts"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📦 Son Konteynırlar</div>
+          <div id="dashShipments"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📈 Navlun Trendi (Son 12 Ay)</div>
+        <div class="chart-wrap"><canvas id="freightChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- SHIPMENTS -->
+    <div class="page" id="page-shipments">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Konteynır Takip</div>
+          <div class="page-subtitle">Tüm sevkiyatlar</div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-ghost btn-sm" onclick="checkAllContainers()">🛰️ Tümünü Sorgula</button>
+          <button class="btn btn-primary" onclick="openModal('shipmentModal')">+ Yeni Konteynır</button>
+        </div>
+      </div>
+
+      <!-- LIVE TRACKING RESULTS -->
+      <div id="liveTrackingPanel" style="display:none;margin-bottom:20px">
+        <div class="card">
+          <div class="card-title">🛰️ Canlı Konum & Süre Durumu
+            <span id="trackingLastUpdate" style="font-size:11px;font-weight:400;color:var(--text3);margin-left:8px"></span>
+          </div>
+          <div id="liveTrackingContent"></div>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <input class="search-input" type="text" id="shipSearch" placeholder="🔍 Konteyner no, müşteri, liman..." oninput="renderShipments()">
+        <select id="shipStatusFilter" onchange="renderShipments()">
+          <option value="">Tüm Durumlar</option>
+          <option value="Yükleme Bekleniyor">Yükleme Bekleniyor</option>
+          <option value="Yüklendi">Yüklendi</option>
+          <option value="Transit">Transit</option>
+          <option value="Varış Limanında">Varış Limanında</option>
+          <option value="Teslim Edildi">Teslim Edildi</option>
+          <option value="Gecikmeli">Gecikmeli</option>
+        </select>
+        <select id="shipTypeFilter" onchange="renderShipments()">
+          <option value="">Tüm Tipler</option>
+          <option value="20DC">20DC</option>
+          <option value="40DC">40DC</option>
+          <option value="40HC">40HC</option>
+          <option value="20RF">20RF (Reefer)</option>
+          <option value="40RF">40RF (Reefer)</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="renderShipments()">🔄 Yenile</button>
+        <span style="font-size:11px;color:var(--text3);margin-left:auto">💡 Satıra çift tıklayın → Detay</span>
+      </div>
+      <div class="card" style="padding:0">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Konteyner No</th>
+                <th>Müşteri</th>
+                <th>Tip</th>
+                <th>Çıkış Limanı</th>
+                <th>Varış Limanı</th>
+                <th>ETD</th>
+                <th>ETA</th>
+                <th>Durum</th>
+                <th>Progress</th>
+                <th>İşlemler</th>
+              </tr>
+            </thead>
+            <tbody id="shipmentsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="page" id="page-alerts">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Alarmlar & Uyarılar</div>
+          <div class="page-subtitle">Gecikme ve yaklaşan varış bildirimleri</div>
+        </div>
+      </div>
+      <div id="alertsContent"></div>
+    </div>
+
+    <!-- RATES / FREIGHT MARKET -->
+    <div class="page" id="page-rates">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Navlun Borsası</div>
+          <div class="page-subtitle">Anlık fiyat göstergesi ve trendler</div>
+        </div>
+      </div>
+      <div class="stats-grid" id="marketStats"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div class="card">
+          <div class="card-title">📊 Ana Hat Navlun Trendi (USD/TEU)</div>
+          <div class="chart-wrap"><canvas id="routeChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🌍 Rota Bazlı Endeksler</div>
+          <div id="routeIndexTable"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📉 Spot vs Kontrat Karşılaştırması</div>
+        <div class="chart-wrap"><canvas id="spotContractChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚡ Piyasa Uyarıları & Analiz</div>
+        <div id="marketAlerts"></div>
+      </div>
+    </div>
+
+    <!-- PRICE LIST -->
+    <div class="page" id="page-pricelist">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Alış Fiyatları</div>
+          <div class="page-subtitle">Temin edilen navlun fiyatları</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('rateModal');setTimeout(loadRateClauseChecks,80)">+ Fiyat Gir</button>
+      </div>
+      <div class="filter-bar">
+        <input class="search-input" type="text" id="rateSearch" placeholder="🔍 Armatör, liman, rota..." oninput="renderRates()">
+        <select id="rateTypeFilter" onchange="renderRates()">
+          <option value="">Tüm Tipler</option>
+          <option value="20DC">20DC</option>
+          <option value="40DC">40DC</option>
+          <option value="40HC">40HC</option>
+          <option value="20RF">20RF</option>
+          <option value="40RF">40RF</option>
+        </select>
+        <select id="rateCurrFilter" onchange="renderRates()">
+          <option value="">Tüm Para Birimleri</option>
+          <option value="USD">USD</option>
+          <option value="EUR">EUR</option>
+          <option value="TRY">TRY</option>
+        </select>
+        <input type="date" id="rateDateFilter" onchange="renderRates()">
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('rateSearch').value='';document.getElementById('rateTypeFilter').value='';document.getElementById('rateCurrFilter').value='';document.getElementById('rateDateFilter').value='';renderRates()">✕ Temizle</button>
+      </div>
+      <div class="card" style="padding:0">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Tarih</th>
+                <th>Armatör</th>
+                <th>Çıkış</th>
+                <th>Varış</th>
+                <th>Tip</th>
+                <th>Fiyat</th>
+                <th>Para Birimi</th>
+                <th>TT (Gün)</th>
+                <th>Geçerlilik</th>
+                <th>Forwarder</th>
+                <th>Notlar</th>
+                <th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody id="ratesTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUOTES LIST -->
+    <div class="page" id="page-quotes">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Teklifler</div>
+          <div class="page-subtitle">Oluşturulan müşteri teklifleri</div>
+        </div>
+        <button class="btn btn-primary" onclick="showPage('newquote')">+ Yeni Teklif</button>
+      </div>
+      <div class="filter-bar">
+        <input class="search-input" type="text" id="quoteSearch" placeholder="🔍 Teklif no, müşteri..." oninput="renderQuotes()">
+        <select id="quoteStatusFilter" onchange="renderQuotes()">
+          <option value="">Tüm Durumlar</option>
+          <option value="Taslak">Taslak</option>
+          <option value="Gönderildi">Gönderildi</option>
+          <option value="Onaylandı">Onaylandı</option>
+          <option value="Reddedildi">Reddedildi</option>
+          <option value="Süresi Doldu">Süresi Doldu</option>
+        </select>
+      </div>
+      <div class="card" style="padding:0">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Teklif No</th>
+                <th>Müşteri / Firma</th>
+                <th>Rota</th>
+                <th>Konteyner</th>
+                <th>Armatör</th>
+                <th>Fiyat</th>
+                <th>TT</th>
+                <th>Geçerlilik</th>
+                <th>Durum</th>
+                <th>İşlemler</th>
+              </tr>
+            </thead>
+            <tbody id="quotesTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW QUOTE -->
+    <div class="page" id="page-newquote">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Müşteri Teklifi Oluştur</div>
+          <div class="page-subtitle">Fiyat teklifi ve şartlar</div>
+        </div>
+      </div>
+      <div class="quote-header">
+        <div class="quote-id" id="newQuoteId">TKL-2024-0001</div>
+        <div class="quote-title-big">Navlun Fiyat Teklifi</div>
+        <div style="color:var(--text3);font-size:13px" id="newQuoteDate"></div>
+      </div>
+
+      <!-- ZORUNLU ALANLAR NOTU -->
+      <div class="alert-box danger" style="margin-bottom:20px">
+        <div style="font-size:20px">⚠️</div>
+        <div>
+          <div class="alert-title">Teklifte Zorunlu Bilgiler</div>
+          <div class="alert-text">
+            <strong>Transit Süre (TT)</strong> ve <strong>Armatör adı</strong> teklifte mutlaka yer almalıdır. Bu bilgiler olmadan teklif geçersiz sayılacaktır.
+            <span id="extraMandatoryNote"></span>
+            <span style="display:inline-block;margin-top:4px;cursor:pointer;color:var(--accent);font-size:11px" onclick="showPage('settings')">[Zorunlu alanları özelleştir →]</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🏢 Müşteri Bilgileri</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Firma Adı *</label>
+            <input id="qFirma" type="text" placeholder="ABC Ticaret A.Ş." required>
+          </div>
+          <div class="form-group">
+            <label>İlgili Kişi</label>
+            <input id="qKisi" type="text" placeholder="Ahmet Yılmaz">
+          </div>
+          <div class="form-group">
+            <label>E-posta</label>
+            <input id="qEmail" type="email" placeholder="info@firma.com">
+          </div>
+          <div class="form-group">
+            <label>Telefon</label>
+            <input id="qTel" type="text" placeholder="+90 212 000 0000">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🚢 Taşıma Detayları *</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Armatör * <span class="tooltip-info" title="Gemi sahibi/işletmeci">?</span></label>
+            <div class="cb-wrap" id="cb_qArmator_wrap">
+              <input class="cb-input" id="qArmator" placeholder="Armatör seçin veya yazın..." readonly onclick="toggleCB('qArmator')" autocomplete="off">
+              <span class="cb-arrow">▾</span>
+              <div class="cb-dropdown" id="cb_qArmator_dd">
+                <input class="cb-search" placeholder="🔍 Armatör ara..." oninput="filterCB('qArmator',this.value)" onclick="event.stopPropagation()">
+                <div class="cb-options" id="cb_qArmator_opts"></div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Forwarder / Acente</label>
+            <input id="qForwarder" type="text" placeholder="Forwarder adı">
+          </div>
+          <div class="form-group">
+            <label>Çıkış Limanı (POL) *</label>
+            <input id="qPOL" type="text" placeholder="Shanghai, CN" required>
+          </div>
+          <div class="form-group">
+            <label>Varış Limanı (POD) *</label>
+            <input id="qPOD" type="text" placeholder="Mersin, TR" required>
+          </div>
+          <div class="form-group">
+            <label>Konteyner Tipi *</label>
+            <select id="qContType" required>
+              <option value="">Seçiniz</option>
+              <option>20DC</option><option>40DC</option><option>40HC</option>
+              <option>20RF (Reefer)</option><option>40RF (Reefer)</option>
+              <option>Open Top</option><option>Flat Rack</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Konteyner Adedi *</label>
+            <input id="qContQty" type="number" min="1" value="1" required>
+          </div>
+          <div class="form-group">
+            <label>Transit Süre (TT) * (Gün)</label>
+            <input id="qTT" type="number" min="1" placeholder="35" required>
+          </div>
+          <div class="form-group">
+            <label>Sefer Sıklığı</label>
+            <input id="qFrequency" type="text" placeholder="Haftalık, 2 Haftada bir...">
+          </div>
+          <div class="form-group">
+            <label>Tahmini Yükleme Tarihi</label>
+            <input id="qETD" type="date">
+          </div>
+          <div class="form-group">
+            <label>Aktarma Limanı</label>
+            <input id="qTransship" type="text" placeholder="Port Klang, Singapore...">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">💰 Fiyatlandırma *</div>
+        <div id="priceRows">
+          <div class="priceRow form-grid" style="align-items:end;border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:16px">
+            <div class="form-group">
+              <label>Kalem</label>
+              <input type="text" class="pr-item" placeholder="Ocean Freight" value="Ocean Freight">
+            </div>
+            <div class="form-group">
+              <label>Tutar *</label>
+              <input type="number" class="pr-amount" placeholder="1200" min="0">
+            </div>
+            <div class="form-group">
+              <label>Para Birimi</label>
+              <select class="pr-curr">
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="TRY">TRY</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Birim</label>
+              <select class="pr-unit">
+                <option>/ Konteyner</option>
+                <option>/ TEU</option>
+                <option>/ Sevkiyat</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="addPriceRow()">+ Kalem Ekle</button>
+        <div class="divider"></div>
+        <div style="display:flex;justify-content:flex-end;gap:20px;align-items:center">
+          <div style="text-align:right">
+            <div style="font-size:12px;color:var(--text3)">Tahmini Toplam</div>
+            <div style="font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--accent)" id="qTotal">USD 0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📋 Teklif Şartları & Notlar</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Teklif Geçerlilik Tarihi *</label>
+            <input id="qValidUntil" type="date" required>
+          </div>
+          <div class="form-group">
+            <label>Ödeme Şartları</label>
+            <select id="qPayment">
+              <option>Advance (Peşin)</option>
+              <option>30 Gün Vadeli</option>
+              <option>60 Gün Vadeli</option>
+              <option>L/C (Akreditif)</option>
+              <option>CAD (Vesaik Karşılığı)</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label>Dahil Olan Ücretler</label>
+            <textarea id="qIncludes" placeholder="Ocean Freight, BAF, EBS..."></textarea>
+          </div>
+          <div class="form-group full">
+            <label>Dahil Olmayan Ücretler</label>
+            <textarea id="qExcludes" placeholder="Sigorta, Gümrük, THC varış..."></textarea>
+          </div>
+          <div class="form-group full">
+            <label>Ek Notlar / Özel Şartlar</label>
+            <textarea id="qNotes" placeholder="Özel taşıma şartları, kargo kısıtlamaları..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveQuote('Taslak')">💾 Taslak Kaydet</button>
+        <button class="btn btn-green" onclick="saveQuote('Gönderildi')">✉️ Teklifi Gönderildi Olarak İşaretle</button>
+        <button class="btn btn-gold" onclick="previewQuotePDF()">📄 PDF Önizle & İndir</button>
+        <button class="btn btn-ghost" onclick="showPage('quotes')">İptal</button>
+      </div>
+    </div>
+
+    <!-- RFQ - FORWARDER FİYAT TALEBİ -->
+    <div class="page" id="page-rfq">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Fiyat Talebi — RFQ</div>
+          <div class="page-subtitle">Forwarder'lara gönderilecek navlun fiyat talep formu</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <div style="display:flex;align-items:center;gap:6px;background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:4px 8px">
+            <span style="font-size:11px;color:var(--text3)">PDF Dili:</span>
+            <button id="rfqLangTR" class="btn btn-primary btn-sm" onclick="setRFQLang('tr')">🇹🇷 TR</button>
+            <button id="rfqLangEN" class="btn btn-ghost btn-sm" onclick="setRFQLang('en')">🇬🇧 EN</button>
+            <button id="rfqLangFR" class="btn btn-ghost btn-sm" onclick="setRFQLang('fr')">🇫🇷 FR</button>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="showPage('rfqlist')">📋 Geçmiş Talepler</button>
+          <button class="btn btn-green" onclick="openRFQPrintWindow()">🖨️ PDF Oluştur</button>
+          <button class="btn btn-primary" onclick="saveRFQ()">💾 Kaydet</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <!-- SOL KOLON -->
+        <div>
+          <div class="card">
+            <div class="card-title">📦 Kargo Bilgileri</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Kargo / Ürün Tanımı *</label>
+                <input id="rfqKargo" type="text" placeholder="Tekstil, Elektronik, Makine...">
+              </div>
+              <div class="form-group">
+                <label>HS Kodu (GTİP)</label>
+                <input id="rfqHS" type="text" placeholder="6204.62.31">
+              </div>
+              <div class="form-group">
+                <label>Konteyner Tipi *</label>
+                <select id="rfqTip">
+                  <option value="">Seçiniz</option>
+                  <option>20DC</option><option>40DC</option><option>40HC</option>
+                  <option>20RF (Reefer)</option><option>40RF (Reefer)</option>
+                  <option>Open Top</option><option>Flat Rack</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Konteyner Adedi *</label>
+                <input id="rfqAdet" type="number" min="1" value="1">
+              </div>
+              <div class="form-group">
+                <label>Brüt Ağırlık (kg)</label>
+                <input id="rfqKg" type="number" placeholder="25000">
+              </div>
+              <div class="form-group">
+                <label>Hacim (CBM)</label>
+                <input id="rfqCBM" type="number" placeholder="67.5">
+              </div>
+              <div class="form-group">
+                <label>⚠️ Tehlikeli Madde (IMO)?</label>
+                <select id="rfqIMO" onchange="toggleIMOFields()">
+                  <option value="No">Hayır</option>
+                  <option value="Yes">Evet — IMO Kargo</option>
+                </select>
+              </div>
+              <div class="form-group" id="rfqIMOClassGroup" style="display:none">
+                <label>IMO Sınıfı / UN No *</label>
+                <input id="rfqIMOClass" type="text" placeholder="Örn: Class 3 / UN1263">
+              </div>
+              <div class="form-group" id="rfqIMOPGGroup" style="display:none">
+                <label>Packing Group</label>
+                <select id="rfqIMOPG">
+                  <option>PG I (Yüksek Tehlike)</option>
+                  <option>PG II (Orta Tehlike)</option>
+                  <option>PG III (Düşük Tehlike)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">🚢 Taşıma Detayları</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Yükleme Limanı (POL) *</label>
+                <input id="rfqPOL" type="text" placeholder="Shanghai, CN">
+              </div>
+              <div class="form-group">
+                <label>Boşaltma Limanı (POD) *</label>
+                <input id="rfqPOD" type="text" placeholder="Mersin, TR">
+              </div>
+              <div class="form-group full">
+                <label>Yükleme Noktası / Pick-up Adresi</label>
+                <input id="rfqPickup" type="text" placeholder="Fabrika adresi, depo, CFS istasyonu...">
+              </div>
+              <div class="form-group full">
+                <label>Teslimat Noktası / Delivery Adresi</label>
+                <input id="rfqDelivery" type="text" placeholder="Varış deposu, gümrük terminali...">
+              </div>
+              <div class="form-group">
+                <label>Tahmini Yükleme Tarihi (ETD) *</label>
+                <input id="rfqETD" type="date">
+              </div>
+              <div class="form-group">
+                <label>Teklif Son Tarihi *</label>
+                <input id="rfqDeadline" type="date">
+              </div>
+              <div class="form-group">
+                <label>İncoterms</label>
+                <select id="rfqInco">
+                  <option>FOB</option><option>CIF</option><option>CFR</option>
+                  <option>EXW</option><option>FCA</option><option>DAP</option><option>DDP</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Taşıma Tipi</label>
+                <select id="rfqMode">
+                  <option>FCL (Tam Konteyner)</option>
+                  <option>LCL (Parsiyel)</option>
+                  <option>FCL + LCL</option>
+                </select>
+              </div>
+              <div class="form-group full">
+                <label>Özel Taşıma Gereksinimleri</label>
+                <input id="rfqSpecial" type="text" placeholder="Sıcaklık kontrolü, üst yükleme yasağı, stacking kısıtı...">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SAĞ KOLON -->
+        <div>
+          <div class="card">
+            <div class="card-title">🏢 Gönderilecek Forwarder'lar
+              <span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:8px">(PDF'e dahil edilmez — sadece kayıt için)</span>
+            </div>
+            <div id="rfqForwarderList" style="margin-bottom:12px"></div>
+            <div style="display:flex;gap:8px;margin-bottom:12px">
+              <input id="rfqFwdName" type="text" placeholder="Forwarder / Acente adı" style="flex:1">
+              <input id="rfqFwdEmail" type="email" placeholder="E-posta" style="flex:1">
+              <button class="btn btn-primary btn-sm" onclick="addRFQForwarder()">+ Ekle</button>
+            </div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:6px">💡 Kayıtlı forwarderlardan hızlı seç:</div>
+            <div id="savedForwarderChips" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">📋 Fiyatlandırılması İstenen Kalemler</div>
+            <div style="display:flex;flex-direction:column;gap:8px" id="rfqItemsList">
+              ${[
+                'Ocean Freight (All-in)',
+                'BAF / Fuel Surcharge',
+                'THC (Origin / Yükleme)',
+                'THC (Destination / Boşaltma)',
+                'B/L Ücreti (Documentation Fee)',
+                'Port Congestion Surcharge',
+                'Reefer Surcharge (varsa)',
+                'IMO / DG Surcharge (varsa)',
+                'Free Time — Origin (Gün)',
+                'Free Time — Destination (Gün)',
+                'Transit Time / TT (Gün) *',
+                'Sefer Sıklığı (Haftalık/2 Haf.)',
+                'Aktarma Limanı (Transshipment)',
+                'Armatör Önerisi *',
+              ].map((item,i) => `
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px;transition:background 0.15s;" onmouseover="this.style.background='var(--navy3)'" onmouseout="this.style.background='transparent'">
+                <input type="checkbox" id="rfqItem_${i}" value="${item}" ${item.includes('*')?'checked disabled':item.includes('IMO')||item.includes('Reefer')?'':'checked'} style="width:15px;height:15px;accent-color:var(--accent)">
+                <span style="color:var(--text2);flex:1">${item.replace(' *','')}</span>
+                ${item.includes('*') ? '<span style="font-size:10px;background:rgba(239,68,68,0.15);color:var(--red);padding:2px 6px;border-radius:3px;font-weight:700">ZORUNLU</span>' : ''}
+              </label>`).join('')}
+            </div>
+            <div class="divider" style="margin:12px 0"></div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:8px">+ Özel kalem ekle:</div>
+            <div style="display:flex;gap:8px">
+              <input id="rfqCustomItem" type="text" placeholder="Özel ücret kalemi..." style="flex:1">
+              <button class="btn btn-ghost btn-sm" onclick="addCustomRFQItem()">+ Ekle</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">📝 Notlar & Özel Şartlar</div>
+            <textarea id="rfqNotes" placeholder="Tercih edilen armatörler, kargo kısıtlamaları, özel talimatlar..." style="min-height:80px;width:100%"></textarea>
+          </div>
+
+          <div class="card">
+            <div class="card-title">📜 Sabit Şartlar & Hususlar
+              <span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:6px">PDF'e eklenir, alış fiyatında zorunlu görünür</span>
+            </div>
+            <div id="rfqClausesPreview" style="font-size:12px;color:var(--text2);line-height:1.8;background:var(--navy2);border-radius:6px;padding:10px;margin-bottom:10px;border:1px solid var(--border)">
+              Yükleniyor...
+            </div>
+            <a href="#" onclick="showPage('settings');return false;" style="font-size:11px;color:var(--accent)">⚙️ Sabit şartları ayarlarda düzenle →</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-green" onclick="openRFQPrintWindow()">🖨️ PDF Oluştur (Yeni Pencere)</button>
+        <button class="btn btn-primary" onclick="saveRFQ()">💾 Kaydet</button>
+        <button class="btn btn-ghost btn-sm" onclick="copyRFQEmail()">📋 E-posta Metnini Kopyala</button>
+      </div>
+    </div>
+
+    <!-- RFQ LIST -->
+    <div class="page" id="page-rfqlist">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Geçmiş RFQ Talepleri</div>
+          <div class="page-subtitle">Forwarderlara gönderilen fiyat talepleri</div>
+        </div>
+        <button class="btn btn-primary" onclick="showPage('rfq')">+ Yeni RFQ</button>
+      </div>
+      <div class="card" style="padding:0">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>RFQ No</th><th>Kargo</th><th>Rota</th><th>Konteyner</th>
+                <th>ETD</th><th>Son Tarih</th><th>Forwarder(lar)</th><th>IMO</th><th>Kayıt</th><th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody id="rfqTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- FRAUD ALERTS -->
+    <div class="page" id="page-fraud">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Hile & Risk Uyarıları</div>
+          <div class="page-subtitle">Forwarder ve armatör hileleri, korunma yolları</div>
+        </div>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab(this,'ftab-forwarder')">Forwarder Hileleri</div>
+        <div class="tab" onclick="switchTab(this,'ftab-armator')">Armatör Hileleri</div>
+        <div class="tab" onclick="switchTab(this,'ftab-genel')">Genel Riskler</div>
+        <div class="tab" onclick="switchTab(this,'ftab-koruma')">Korunma Yolları</div>
+      </div>
+      <div class="tab-content active" id="ftab-forwarder" style="display:block"></div>
+      <div class="tab-content" id="ftab-armator"></div>
+      <div class="tab-content" id="ftab-genel"></div>
+      <div class="tab-content" id="ftab-koruma"></div>
+    </div>
+
+    <!-- DECISION SUPPORT -->
+    <div class="page" id="page-decision">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Karar Destek Paneli</div>
+          <div class="page-subtitle">Yönetici özetleri ve stratejik bilgiler</div>
+        </div>
+      </div>
+      <div id="decisionContent"></div>
+    </div>
+
+    <!-- MESSAGES -->
+    <div class="page" id="page-messages">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Müşteri Mesajları</div>
+          <div class="page-subtitle">Varış bildirimleri — İngilizce & Fransızca</div>
+        </div>
+      </div>
+      <div id="messagesContent"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="page-header">
+        <div><div class="page-title">Ayarlar</div><div class="page-subtitle">Firma bilgileri, alarm eşikleri ve teklif kuralları</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div class="card">
+          <div class="card-title">🏢 Firma Bilgileri</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Firma Adı</label><input id="setFirma" type="text" placeholder="Kendi firmanız"></div>
+            <div class="form-group"><label>Vergi No</label><input id="setVkn" type="text"></div>
+            <div class="form-group full"><label>Adres</label><input id="setAdres" type="text" placeholder="Sokak, İlçe, İl"></div>
+            <div class="form-group"><label>E-posta</label><input id="setEmail" type="email"></div>
+            <div class="form-group"><label>Telefon</label><input id="setTel" type="text"></div>
+            <div class="form-group"><label>Web Site</label><input id="setWeb" type="text"></div>
+            <div class="form-group full"><label>Logo URL (isteğe bağlı)</label><input id="setLogo" type="text" placeholder="https://..."></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="saveSettings()">💾 Firma Bilgilerini Kaydet</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <div class="card-title">⚙️ Alarm Eşikleri</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Çıkış Gecikme Alarmı (Gün)</label>
+                <input id="setDelayDays" type="number" value="3" min="1">
+              </div>
+              <div class="form-group">
+                <label>Varış Uyarı Süresi (Gün)</label>
+                <input id="setArrivalWarn" type="number" value="7" min="1">
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" onclick="saveSettings()">💾 Alarm Ayarlarını Kaydet</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">📋 Teklif — Zorunlu Alanlar Yönetimi
+              <span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:6px">Teklifte zorunlu olmasını istediğiniz alanları seçin</span>
+            </div>
+            <div style="margin-bottom:12px">
+              <div class="alert-box warn" style="margin-bottom:12px">
+                <div><div class="alert-title">📌 Her zaman zorunlu</div>
+                <div class="alert-text">Transit Süre (TT) ve Armatör adı her teklifte zorunludur ve değiştirilemez.</div></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px" id="mandatoryFieldsList">
+                ${[
+                  {id:'mf_forwarder', label:'Forwarder / Acente'},
+                  {id:'mf_transship', label:'Aktarma Limanı'},
+                  {id:'mf_frequency', label:'Sefer Sıklığı'},
+                  {id:'mf_etd', label:'Tahmini Yükleme Tarihi (ETD)'},
+                  {id:'mf_payment', label:'Ödeme Şartları'},
+                  {id:'mf_includes', label:'Dahil Olan Ücretler'},
+                  {id:'mf_excludes', label:'Dahil Olmayan Ücretler'},
+                  {id:'mf_validity', label:'Teklif Geçerlilik Tarihi'},
+                ].map(f=>`
+                <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:8px 10px;border-radius:6px;background:var(--navy2);border:1px solid var(--border)">
+                  <input type="checkbox" id="${f.id}" style="width:15px;height:15px;accent-color:var(--accent)">
+                  <span style="color:var(--text2)">${f.label}</span>
+                </label>`).join('')}
+              </div>
+            </div>
+            <div style="margin-bottom:12px">
+              <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Özel zorunlu alan ekle:</div>
+              <div style="display:flex;gap:8px">
+                <input id="newMandatoryField" type="text" placeholder="Alan adı..." style="flex:1">
+                <button class="btn btn-ghost btn-sm" onclick="addCustomMandatoryField()">+ Ekle</button>
+              </div>
+              <div id="customMandatoryList" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px"></div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" onclick="saveMandatoryFields()">💾 Zorunlu Alanları Kaydet</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLAUSES SECTION -->
+      <div class="card" style="margin-top:20px">
+        <div class="card-title">📜 Sabit Şartlar & Hususlar
+          <span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:6px">RFQ PDF'ine eklenir + Alış fiyatı girişinde zorunlu onay olarak çıkar</span>
+        </div>
+        <div class="alert-box info" style="margin-bottom:14px">
+          <div><div class="alert-title">💡 Nasıl Çalışır?</div>
+          <div class="alert-text">Buraya eklediğiniz şartlar; (1) RFQ PDF'inde "Özel Şartlar" bölümünde otomatik görünür, (2) Alış fiyatı girerken onay kutusu olarak çıkar ve işaretlenmesi zorunlu tutulur. Dil seçeneği ile her dil için ayrı şart ekleyebilirsiniz.</div></div>
+        </div>
+        <div id="clausesList" style="margin-bottom:14px;display:flex;flex-direction:column;gap:8px"></div>
+        <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-bottom:12px">
+          <input id="newClauseText" type="text" placeholder="Yeni şart / husus... Örn: Teklif TT ve armatör adını içermelidir.">
+          <select id="newClauseLang" style="width:80px">
+            <option value="all">Hepsi</option>
+            <option value="tr">🇹🇷 TR</option>
+            <option value="en">🇬🇧 EN</option>
+            <option value="fr">🇫🇷 FR</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="addClause()">+ Ekle</button>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px">📌 Sık kullanılan şartlar (tıklayarak forma ekle):</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
+          ${[
+            ['Teklif; transit süre (TT) ve armatör adını zorunlu içermelidir.','tr'],
+            ['Ocean Freight ve BAF ayrı kalem olarak belirtilmelidir.','tr'],
+            ['Free Time (POL ve POD) ayrı ayrı gün olarak belirtilmelidir.','tr'],
+            ['D&D ücretleri teklife dahil değildir, ayrıca belirtilmelidir.','tr'],
+            ['IMO kargo için DG surcharge ayrı kaleme yazılmalıdır.','tr'],
+            ['Fiyatlar belirtilen geçerlilik tarihine kadar sabit kalmalıdır.','tr'],
+            ['Quote must include Transit Time (TT) and Carrier name.','en'],
+            ['Ocean Freight and BAF must be quoted as separate line items.','en'],
+            ['Free Time at origin and destination must be stated in days.','en'],
+            ['La cotation doit inclure le délai de transit (TT) et le nom de l\'armateur.','fr'],
+          ].map(([t,l])=>`<span class="tag" style="cursor:pointer;font-size:11px" onclick="quickAddClause('${t.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','${l}')" title="${t}">${t.substring(0,42)}${t.length>42?'…':''}</span>`).join('')}
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="saveClauses()">💾 Şartları Kaydet</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- MODALS -->
+
+<!-- SHIPMENT MODAL -->
+<div class="modal-overlay" id="shipmentModal">
+  <div class="modal" style="max-width:820px">
+    <button class="modal-close" onclick="closeModal('shipmentModal')">✕</button>
+    <div class="modal-title" id="shipmentModalTitle">Yeni Konteynır Ekle</div>
+    <input type="hidden" id="editShipId">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Konteyner No</label>
+        <input id="sContNo" type="text" placeholder="MSCU1234567">
+      </div>
+      <div class="form-group">
+        <label>Müşteri / İthalatçı</label>
+        <input id="sMüşteri" type="text" placeholder="ABC Ticaret A.Ş.">
+      </div>
+      <div class="form-group">
+        <label>Konteyner Tipi</label>
+        <select id="sTip">
+          <option>20DC</option><option>40DC</option><option>40HC</option>
+          <option>20RF (Reefer)</option><option>40RF (Reefer)</option>
+          <option>Open Top</option><option>Flat Rack</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Adet</label>
+        <input id="sAdet" type="number" value="1" min="1">
+      </div>
+      <div class="form-group">
+        <label>Çıkış Limanı (POL)</label>
+        <input id="sPOL" type="text" placeholder="Shanghai, CN">
+      </div>
+      <div class="form-group">
+        <label>Varış Limanı (POD)</label>
+        <input id="sPOD" type="text" placeholder="Mersin, TR">
+      </div>
+      <div class="form-group">
+        <label>ETD (Tahmini Yükleme)</label>
+        <input id="sETD" type="date">
+      </div>
+      <div class="form-group">
+        <label>ATD (Gerçek Yükleme)</label>
+        <input id="sATD" type="date">
+      </div>
+      <div class="form-group">
+        <label>ETA (Tahmini Varış)</label>
+        <input id="sETA" type="date">
+      </div>
+      <div class="form-group">
+        <label>ATA (Gerçek Varış)</label>
+        <input id="sATA" type="date">
+      </div>
+      <div class="form-group">
+        <label>Armatör</label>
+        <div class="cb-wrap" id="cb_sArmator_wrap">
+          <input class="cb-input" id="sArmator" placeholder="Armatör seçin veya yazın..." readonly onclick="toggleCB('sArmator')" autocomplete="off">
+          <span class="cb-arrow">▾</span>
+          <div class="cb-dropdown" id="cb_sArmator_dd">
+            <input class="cb-search" placeholder="🔍 Armatör ara..." oninput="filterCB('sArmator',this.value)" onclick="event.stopPropagation()">
+            <div class="cb-options" id="cb_sArmator_opts"></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Forwarder / Acente</label>
+        <input id="sForwarder" type="text">
+      </div>
+      <div class="form-group">
+        <label>B/L No</label>
+        <input id="sBL" type="text" placeholder="MSCU123456789">
+      </div>
+      <div class="form-group">
+        <label>Navlun (USD)</label>
+        <input id="sNavlun" type="number" min="0" placeholder="1200">
+      </div>
+      <div class="form-group">
+        <label>Durum</label>
+        <select id="sDurum">
+          <option>Yükleme Bekleniyor</option>
+          <option>Yüklendi</option>
+          <option>Transit</option>
+          <option>Varış Limanında</option>
+          <option>Teslim Edildi</option>
+          <option>Gecikmeli</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Ürün / Kargo</label>
+        <input id="sKargo" type="text" placeholder="Tekstil, Makine...">
+      </div>
+      <div class="form-group full">
+        <label>Notlar</label>
+        <textarea id="sNot" placeholder="Özel durumlar, talimatlar..."></textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveShipment()">💾 Kaydet</button>
+      <button class="btn btn-ghost" onclick="closeModal('shipmentModal')">İptal</button>
+    </div>
+  </div>
+</div>
+
+<!-- RATE MODAL -->
+<div class="modal-overlay" id="rateModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('rateModal')">✕</button>
+    <div class="modal-title">Alış Fiyatı Gir</div>
+    <input type="hidden" id="editRateId">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Tarih *</label>
+        <input id="rDate" type="date" required>
+      </div>
+      <div class="form-group">
+        <label>Armatör *</label>
+        <div class="cb-wrap" id="cb_rArmator_wrap">
+          <input class="cb-input" id="rArmator" placeholder="Armatör seçin veya yazın..." readonly onclick="toggleCB('rArmator')" autocomplete="off">
+          <span class="cb-arrow">▾</span>
+          <div class="cb-dropdown" id="cb_rArmator_dd">
+            <input class="cb-search" placeholder="🔍 Armatör ara..." oninput="filterCB('rArmator',this.value)" onclick="event.stopPropagation()">
+            <div class="cb-options" id="cb_rArmator_opts"></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Forwarder</label>
+        <input id="rForwarder" type="text">
+      </div>
+      <div class="form-group">
+        <label>Çıkış Limanı *</label>
+        <input id="rPOL" type="text" placeholder="Shanghai" required>
+      </div>
+      <div class="form-group">
+        <label>Varış Limanı *</label>
+        <input id="rPOD" type="text" placeholder="Mersin" required>
+      </div>
+      <div class="form-group">
+        <label>Konteyner Tipi *</label>
+        <select id="rTip" required>
+          <option>20DC</option><option>40DC</option><option>40HC</option>
+          <option>20RF</option><option>40RF</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Fiyat *</label>
+        <input id="rFiyat" type="number" min="0" required>
+      </div>
+      <div class="form-group">
+        <label>Para Birimi</label>
+        <select id="rCurr">
+          <option>USD</option><option>EUR</option><option>TRY</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>TT (Transit Gün) *</label>
+        <input id="rTT" type="number" min="1" required>
+      </div>
+      <div class="form-group">
+        <label>Fiyat Geçerlilik</label>
+        <input id="rGecerli" type="date">
+      </div>
+      <div class="form-group full">
+        <label>Notlar / Şartlar</label>
+        <textarea id="rNot" placeholder="BAF, surcharge, özel şartlar..."></textarea>
+      </div>
+      <!-- ZORUNLU ŞARTLAR ONAY -->
+      <div class="form-group full" id="rateClausesGroup">
+        <label style="color:var(--red)">⚠️ Zorunlu Onaylar (Kayıt için tümü işaretlenmeli)</label>
+        <div id="rateClausesChecks" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;background:var(--navy3);border-radius:6px;padding:12px;border:1px solid var(--border)"></div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveRate()">💾 Kaydet</button>
+      <button class="btn btn-ghost" onclick="closeModal('rateModal')">İptal</button>
+    </div>
+  </div>
+</div>
+
+<!-- QUOTE VIEW MODAL -->
+<div class="modal-overlay" id="quoteViewModal">
+  <div class="modal" style="max-width:780px">
+    <button class="modal-close" onclick="closeModal('quoteViewModal')">✕</button>
+    <div id="quoteViewContent"></div>
+    <div class="form-actions">
+      <button class="btn btn-gold" onclick="printQuote()">🖨️ PDF / Yazdır</button>
+      <button class="btn btn-ghost" onclick="closeModal('quoteViewModal')">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHIPMENT DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal" style="max-width:680px">
+    <button class="modal-close" onclick="closeModal('detailModal')">✕</button>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ===================== DATABASE =====================
+let db;
+const SQL_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.wasm';
+
+async function initDB() {
+  const SQL = await initSqlJs({ locateFile: () => SQL_CDN });
+  const saved = localStorage.getItem('freightproDB');
+  if (saved) {
+    const arr = Uint8Array.from(atob(saved), c => c.charCodeAt(0));
+    db = new SQL.Database(arr);
+  } else {
+    db = new SQL.Database();
+    createSchema();
+    insertSampleData();
+  }
+}
+
+function saveDB() {
+  const data = db.export();
+  const b64 = btoa(String.fromCharCode(...data));
+  localStorage.setItem('freightproDB', b64);
+}
+
+function exportDB() {
+  const data = db.export();
+  const blob = new Blob([data], { type: 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'freightpro_backup.db';
+  a.click(); URL.revokeObjectURL(url);
+  toast('Veritabanı yedeklendi', 'freightpro_backup.db indirildi', 'success');
+}
+
+function importDB(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (!file.name.endsWith('.db')) {
+    toast('Hata', 'Sadece .db uzantılı dosya yüklenebilir', 'danger');
+    input.value = '';
+    return;
+  }
+  if (!confirm(`"${file.name}" dosyasını geri yüklemek istiyor musunuz?\n\nMevcut tüm veriler silinecek ve bu dosyadaki veriler yüklenecektir.`)) {
+    input.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const SQL = await initSqlJs({ locateFile: () => SQL_CDN });
+      const arr = new Uint8Array(e.target.result);
+      db = new SQL.Database(arr);
+      // Verify it has expected tables
+      const tables = query("SELECT name FROM sqlite_master WHERE type='table'").map(r => r.name);
+      if (!tables.includes('shipments') || !tables.includes('settings')) {
+        toast('Hata', 'Geçersiz dosya — FreightPro yedek dosyası değil', 'danger');
+        return;
+      }
+      saveDB();
+      toast('Başarılı! 🎉', `"${file.name}" yüklendi. Tüm veriler geri getirildi.`, 'success');
+      // Refresh current page
+      renderDashboard();
+      showPage('dashboard');
+    } catch(err) {
+      toast('Hata', 'Dosya okunamadı: ' + err.message, 'danger');
+    }
+    input.value = '';
+  };
+  reader.onerror = () => {
+    toast('Hata', 'Dosya okuma hatası', 'danger');
+    input.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function createSchema() {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS shipments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      cont_no TEXT, musteri TEXT, tip TEXT, adet INTEGER,
+      pol TEXT, pod TEXT, etd TEXT, atd TEXT, eta TEXT, ata TEXT,
+      armator TEXT, forwarder TEXT, bl TEXT, navlun REAL,
+      durum TEXT, kargo TEXT, notlar TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+    CREATE TABLE IF NOT EXISTS rates (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      tarih TEXT, armator TEXT, forwarder TEXT,
+      pol TEXT, pod TEXT, tip TEXT,
+      fiyat REAL, curr TEXT, tt INTEGER, gecerlilik TEXT, notlar TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+    CREATE TABLE IF NOT EXISTS quotes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      quote_no TEXT, firma TEXT, kisi TEXT, email TEXT, tel TEXT,
+      armator TEXT, forwarder TEXT, pol TEXT, pod TEXT,
+      cont_type TEXT, cont_qty INTEGER, tt INTEGER, frequency TEXT,
+      etd TEXT, transship TEXT,
+      fiyat_json TEXT, toplam REAL, curr TEXT,
+      gecerlilik TEXT, odeme TEXT, includes TEXT, excludes TEXT, notlar TEXT,
+      durum TEXT DEFAULT 'Taslak',
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+    CREATE TABLE IF NOT EXISTS rfq (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      rfq_no TEXT, kargo TEXT, hs TEXT, tip TEXT, adet INTEGER,
+      kg REAL, cbm REAL, imo TEXT, imo_class TEXT,
+      pol TEXT, pod TEXT, etd TEXT, deadline TEXT,
+      incoterms TEXT, mode TEXT, items TEXT, forwarders TEXT, notlar TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY, value TEXT
+    );
+  `);
+}
+
+function insertSampleData() {
+  const today = new Date();
+  const fmt = d => d.toISOString().split('T')[0];
+  const addDays = (d,n) => { const r=new Date(d); r.setDate(r.getDate()+n); return r; };
+
+  // Shipments
+  [
+    ['MSCU7654321','Yıldız Tekstil','40HC',2,'Shanghai, CN','Mersin, TR',
+     fmt(addDays(today,-40)),fmt(addDays(today,-38)),fmt(addDays(today,5)),null,
+     'MSC','Güven Gümrük','MSCUBL123',2400,'Transit','Tekstil',''],
+    ['MAEU1234567','Ay Makine Ltd.','20DC',1,'Hamburg, DE','Istanbul, TR',
+     fmt(addDays(today,-60)),fmt(addDays(today,-58)),fmt(addDays(today,-2)),null,
+     'Maersk','DHL','MAEUBL456',1800,'Varış Limanında','Makine Parçaları',''],
+    ['CMAU9876543','Demir İthalat','40DC',3,'Guangzhou, CN','Izmir, TR',
+     fmt(addDays(today,-10)),null,fmt(addDays(today,25)),null,
+     'CMA CGM','Atlas Lojistik','',3600,'Yükleme Bekleniyor','Elektronik','ETD gecikmesi riski'],
+    ['HLXU5552233','Global Ticaret','40HC',1,'Rotterdam, NL','Haydarpasa, TR',
+     fmt(addDays(today,-35)),fmt(addDays(today,-33)),fmt(addDays(today,2)),null,
+     'Hapag-Lloyd','Expans','HLXUBL789',2100,'Transit','Kimyasal','Tehlikeli madde - IMO sınıf 3'],
+    ['EGLV3344556','Alfa İhracat','20DC',2,'Mersin, TR','Jebel Ali, AE',
+     fmt(addDays(today,-5)),fmt(addDays(today,-4)),fmt(addDays(today,12)),null,
+     'Evergreen','Standart','EGLV001',1500,'Transit','Gıda','Soğuk zincir gerekmiyor'],
+  ].forEach(r => {
+    db.run(`INSERT INTO shipments (cont_no,musteri,tip,adet,pol,pod,etd,atd,eta,ata,armator,forwarder,bl,navlun,durum,kargo,notlar)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, r);
+  });
+
+  // Rates
+  [
+    [fmt(today),'MSC','Güven Gümrük','Shanghai, CN','Mersin, TR','40HC',2400,'USD',35,fmt(addDays(today,30)),'BAF dahil'],
+    [fmt(today),'Maersk','DHL','Hamburg, DE','Istanbul, TR','20DC',1200,'USD',20,fmt(addDays(today,15)),''],
+    [fmt(today),'CMA CGM','Atlas Lojistik','Guangzhou, CN','Izmir, TR','40DC',2800,'USD',38,fmt(addDays(today,14)),'PSS dahil'],
+    [fmt(addDays(today,-7)),'Hapag-Lloyd','Expans','Rotterdam, NL','Haydarpasa, TR','40HC',1900,'USD',18,fmt(addDays(today,7)),''],
+    [fmt(addDays(today,-14)),'Evergreen','Standart','Mersin, TR','Jebel Ali, AE','20DC',1500,'USD',12,fmt(addDays(today,5)),''],
+  ].forEach(r => {
+    db.run(`INSERT INTO rates (tarih,armator,forwarder,pol,pod,tip,fiyat,curr,tt,gecerlilik,notlar) VALUES (?,?,?,?,?,?,?,?,?,?,?)`, r);
+  });
+
+  // Sample quote
+  const qno = generateQuoteNo();
+  db.run(`INSERT INTO quotes (quote_no,firma,kisi,email,tel,armator,forwarder,pol,pod,cont_type,cont_qty,tt,frequency,etd,transship,fiyat_json,toplam,curr,gecerlilik,odeme,includes,excludes,notlar,durum)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+    [qno,'Yıldız Tekstil A.Ş.','Mehmet Öz','mehmet@yildiztekstil.com','+90 212 555 0000',
+     'MSC','Güven Gümrük','Shanghai, CN','Mersin, TR','40HC',2,35,'Haftalık',
+     fmt(addDays(today,7)),'Port Klang',
+     JSON.stringify([{item:'Ocean Freight',amount:2400,curr:'USD',unit:'/ Konteyner'}]),
+     4800,'USD',fmt(addDays(today,14)),'30 Gün Vadeli',
+     'Ocean Freight, BAF','Sigorta, Gümrük, Varış THC','',
+     'Gönderildi']);
+
+  setSetting('firma','FreightPro Lojistik');
+  setSetting('email','info@freightpro.com');
+}
+
+function setSetting(k,v) {
+  db.run(`INSERT OR REPLACE INTO settings (key,value) VALUES (?,?)`, [k,v]);
+}
+function getSetting(k) {
+  try {
+    const r = db.exec(`SELECT value FROM settings WHERE key=?`, [k]);
+    return r[0]?.values[0]?.[0] || '';
+  } catch { return ''; }
+}
+
+function query(sql, params=[]) {
+  try {
+    const r = db.exec(sql, params);
+    if (!r[0]) return [];
+    return r[0].values.map(row => {
+      const obj = {};
+      r[0].columns.forEach((c,i) => obj[c] = row[i]);
+      return obj;
+    });
+  } catch(e) { console.error(e); return []; }
+}
+
+// ===================== NAVIGATION =====================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick')?.includes(`'${id}'`)) n.classList.add('active');
+  });
+  // Render page
+  const renders = {
+    dashboard: renderDashboard,
+    shipments: renderShipments,
+    alerts: renderAlerts,
+    rates: renderRates_market,
+    pricelist: renderRates,
+    rfq: () => { rfqForwarders = []; renderRFQForwarders(); loadSavedForwarderChips(); renderRFQClausesPreview(); setTimeout(initPortInputsForPage, 100); },
+    rfqlist: renderRFQList,
+    quotes: renderQuotes,
+    newquote: () => { initNewQuote(); setTimeout(initPortInputsForPage, 100); },
+    fraud: renderFraud,
+    decision: renderDecision,
+    messages: renderMessages,
+    settings: () => { renderSettingsPage(); loadClausesFromDB(); },
+  };
+  renders[id]?.();
+}
+
+function openModal(id) {
+  document.getElementById(id)?.classList.add('open');
+  if (id === 'rateModal') {
+    setTimeout(() => { loadRateClauseChecks(); initPortInputsForPage(); }, 50);
+  }
+  if (id === 'shipmentModal') {
+    setTimeout(initPortInputsForPage, 50);
+  }
+}
+function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+
+// ===================== TOAST =====================
+function toast(title, msg, type='info') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<div class="toast-title">${title}</div><div class="toast-msg">${msg}</div>`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 5000);
+}
+
+// ===================== DASHBOARD =====================
+function renderDashboard() {
+  const ships = query('SELECT * FROM shipments');
+  const today = new Date();
+  const diffDays = (a,b) => Math.round((new Date(a)-new Date(b))/(1000*60*60*24));
+
+  let total=ships.length, transit=0, delay=0, arrivals7=0;
+  ships.forEach(s => {
+    if (['Transit','Yüklendi'].includes(s.durum)) transit++;
+    if (s.eta && diffDays(s.eta, today) <= 7 && diffDays(s.eta,today) >= 0 && s.durum !== 'Teslim Edildi') arrivals7++;
+    // Departure delay
+    if (s.etd && !s.atd && diffDays(today, s.etd) > 3) delay++;
+    // Arrival delay
+    if (s.eta && !s.ata && diffDays(today, s.eta) > 0 && s.durum !== 'Teslim Edildi') delay++;
+  });
+
+  const totalNav = ships.reduce((a,s) => a+(s.navlun||0), 0);
+
+  document.getElementById('dashStats').innerHTML = `
+    <div class="stat-card blue"><div class="stat-label">Toplam Sevkiyat</div><div class="stat-value" style="color:var(--accent)">${total}</div><div class="stat-sub">Aktif kayıt</div><div class="stat-icon">📦</div></div>
+    <div class="stat-card gold"><div class="stat-label">Transit</div><div class="stat-value" style="color:var(--gold)">${transit}</div><div class="stat-sub">Yolda</div><div class="stat-icon">🚢</div></div>
+    <div class="stat-card red"><div class="stat-label">Alarm</div><div class="stat-value" style="color:var(--red)">${delay}</div><div class="stat-sub">Gecikme uyarısı</div><div class="stat-icon">🔔</div></div>
+    <div class="stat-card orange"><div class="stat-label">7 Gün Varış</div><div class="stat-value" style="color:var(--orange)">${arrivals7}</div><div class="stat-sub">Yaklaşan varışlar</div><div class="stat-icon">⏰</div></div>
+    <div class="stat-card green"><div class="stat-label">Toplam Navlun</div><div class="stat-value" style="color:var(--green);font-size:20px">$${totalNav.toLocaleString()}</div><div class="stat-sub">USD</div><div class="stat-icon">💰</div></div>
+  `;
+
+  // Alerts
+  const alerts = buildAlerts(ships);
+  const alertBadge = document.getElementById('alertBadge');
+  if (alerts.length > 0) {
+    alertBadge.style.display='inline';
+    alertBadge.textContent = alerts.length + ' Alarm';
+  } else { alertBadge.style.display='none'; }
+
+  document.getElementById('dashAlerts').innerHTML = alerts.length === 0
+    ? '<div style="color:var(--green);font-size:13px;padding:12px">✅ Aktif alarm yok</div>'
+    : alerts.slice(0,4).map(a => `<div class="alert-box ${a.type}"><div><div class="alert-title">${a.title}</div><div class="alert-text">${a.msg}</div></div></div>`).join('');
+
+  // Recent shipments
+  document.getElementById('dashShipments').innerHTML = ships.slice(-5).reverse().map(s => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--accent)">${s.cont_no}</div>
+        <div style="font-size:12px;color:var(--text2)">${s.musteri}</div>
+        <div style="font-size:11px;color:var(--text3)">${s.pol} → ${s.pod}</div>
+      </div>
+      <div style="text-align:right">
+        ${statusBadge(s.durum)}
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">ETA: ${s.eta||'—'}</div>
+      </div>
+    </div>`).join('');
+
+  // Chart
+  renderFreightChart();
+}
+
+function buildAlerts(ships) {
+  const today = new Date();
+  const diffDays = (a,b) => Math.round((new Date(a)-new Date(b))/(1000*60*60*24));
+  const alerts = [];
+
+  ships.forEach(s => {
+    if (s.durum === 'Teslim Edildi') return;
+    // Departure delay
+    if (s.etd && !s.atd) {
+      const late = diffDays(today, s.etd);
+      if (late > 3) alerts.push({ type:'danger', title:`🚨 Yükleme Gecikmesi — ${s.cont_no}`, msg:`${s.pol} → ${s.pod} | ETD: ${s.etd} | ${late} gün gecikmeli | Müşteri: ${s.musteri}` });
+      else if (late > 0) alerts.push({ type:'warn', title:`⚠️ Yükleme Yaklaşıyor — ${s.cont_no}`, msg:`ETD: ${s.etd} | Henüz yüklenmiş değil | ${s.pol}` });
+    }
+    // Arrival delay
+    if (s.eta && !s.ata) {
+      const daysLeft = diffDays(s.eta, today);
+      if (daysLeft < 0) alerts.push({ type:'danger', title:`🚨 Varış Gecikmesi — ${s.cont_no}`, msg:`ETA: ${s.eta} | ${Math.abs(daysLeft)} gün geçti | ${s.pod} | Müşteri: ${s.musteri}` });
+      else if (daysLeft <= 7) alerts.push({ type:'warn', title:`⏰ ${daysLeft} Gün Sonra Varış — ${s.cont_no}`, msg:`ETA: ${s.eta} | ${s.pol} → ${s.pod} | Müşteri: ${s.musteri}` });
+    }
+  });
+  return alerts;
+}
+
+function renderFreightChart() {
+  const ctx = document.getElementById('freightChart');
+  if (!ctx) return;
+  const labels = ['Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara','Oca','Şub','Mar'];
+  const data = [1800,2100,2400,2800,3200,2900,2600,2200,2100,2400,2600,2800];
+  if (window._freightChart) window._freightChart.destroy();
+  window._freightChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Ortalama Navlun (USD/40HC)',
+        data, borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.08)',
+        tension: 0.4, fill: true, pointBackgroundColor: '#00d4ff', pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Space Grotesk' } } } },
+      scales: {
+        x: { ticks: { color: '#64748b' }, grid: { color: '#1e2d45' } },
+        y: { ticks: { color: '#64748b', callback: v => '$' + v.toLocaleString() }, grid: { color: '#1e2d45' } }
+      }
+    }
+  });
+}
+
+// ===================== SHIPMENTS =====================
+function statusBadge(d) {
+  const m = {
+    'Yükleme Bekleniyor':'warn','Yüklendi':'transit','Transit':'transit',
+    'Varış Limanında':'warn','Teslim Edildi':'delivered','Gecikmeli':'alert'
+  };
+  return `<span class="status status-${m[d]||'ok'}">${d}</span>`;
+}
+
+function progressPct(s) {
+  const map = {'Yükleme Bekleniyor':5,'Yüklendi':20,'Transit':60,'Varış Limanında':85,'Teslim Edildi':100,'Gecikmeli':40};
+  return map[s.durum] || 0;
+}
+
+function renderShipments() {
+  const search = (document.getElementById('shipSearch')?.value||'').toLowerCase();
+  const statusF = document.getElementById('shipStatusFilter')?.value||'';
+  const typeF = document.getElementById('shipTypeFilter')?.value||'';
+
+  let ships = query('SELECT * FROM shipments ORDER BY id DESC');
+  if (search) ships = ships.filter(s =>
+    (s.cont_no+s.musteri+s.pol+s.pod+s.armator+s.bl).toLowerCase().includes(search));
+  if (statusF) ships = ships.filter(s => s.durum === statusF);
+  if (typeF) ships = ships.filter(s => s.tip === typeF);
+
+  const tbody = document.getElementById('shipmentsTable');
+  if (!tbody) return;
+
+  const today = new Date();
+  const diffDays = (a,b) => Math.round((new Date(a)-new Date(b))/(1000*60*60*24));
+
+  tbody.innerHTML = ships.length === 0 ?
+    `<tr><td colspan="10">
+      <div class="empty-state">
+        <div class="empty-state-icon">📦</div>
+        <div class="empty-state-title">Konteynır Bulunamadı</div>
+        <div class="empty-state-sub">Filtreleri temizleyin veya yeni konteynır ekleyin</div>
+      </div>
+    </td></tr>` :
+  ships.map(s => {
+    const pct = progressPct(s);
+    const color = pct===100?'var(--green)':pct>60?'var(--accent)':'var(--gold)';
+    let etdWarn = '', etaWarn = '';
+    if (s.etd && !s.atd && diffDays(today, s.etd) > 3) etdWarn = ' <span title="ETD Gecikmesi" style="color:var(--red)">⚠</span>';
+    if (s.eta && !s.ata && diffDays(today, s.eta) <= 7 && diffDays(today,s.eta) >= 0) etaWarn = ' <span title="Varış yaklaşıyor" style="color:var(--gold)">⏰</span>';
+    if (s.eta && !s.ata && diffDays(today, s.eta) < 0) etaWarn = ' <span title="ETA geçti!" style="color:var(--red)">🚨</span>';
+
+    return `<tr style="cursor:pointer" ondblclick="viewShipment(${s.id})">
+      <td class="mono" style="color:var(--accent);font-size:12px;white-space:nowrap">${s.cont_no||'—'}</td>
+      <td><span class="truncate" style="max-width:130px" title="${s.musteri||''}">${s.musteri||'—'}</span></td>
+      <td><span class="tag">${s.tip||'—'}</span>${s.adet>1?`<small style="color:var(--text3)"> ×${s.adet}</small>`:''}</td>
+      <td style="font-size:12px;white-space:nowrap">${(s.pol||'—').split(',')[0]}</td>
+      <td style="font-size:12px;white-space:nowrap">${(s.pod||'—').split(',')[0]}</td>
+      <td class="mono" style="font-size:11px;white-space:nowrap">${s.etd||'—'}${etdWarn}</td>
+      <td class="mono" style="font-size:11px;white-space:nowrap">${s.eta||'—'}${etaWarn}</td>
+      <td style="white-space:nowrap">${statusBadge(s.durum)}</td>
+      <td style="min-width:90px;max-width:90px">
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div>
+        <div class="progress-pct">${pct}%</div>
+      </td>
+      <td>
+        <div style="display:flex;gap:4px;white-space:nowrap">
+          <button class="btn btn-ghost btn-sm" onclick="viewShipment(${s.id})" title="Detay">👁</button>
+          <button class="btn btn-ghost btn-sm" onclick="editShipment(${s.id})" title="Düzenle">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteShipment(${s.id})" title="Sil">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function saveShipment() {
+  const id = document.getElementById('editShipId').value;
+  const vals = [
+    document.getElementById('sContNo').value,
+    document.getElementById('sMüşteri').value,
+    document.getElementById('sTip').value,
+    parseInt(document.getElementById('sAdet').value)||1,
+    document.getElementById('sPOL').value,
+    document.getElementById('sPOD').value,
+    document.getElementById('sETD').value||null,
+    document.getElementById('sATD').value||null,
+    document.getElementById('sETA').value||null,
+    document.getElementById('sATA').value||null,
+    document.getElementById('sArmator').value,
+    document.getElementById('sForwarder').value,
+    document.getElementById('sBL').value,
+    parseFloat(document.getElementById('sNavlun').value)||null,
+    document.getElementById('sDurum').value,
+    document.getElementById('sKargo').value,
+    document.getElementById('sNot').value,
+  ];
+  if (id) {
+    db.run(`UPDATE shipments SET cont_no=?,musteri=?,tip=?,adet=?,pol=?,pod=?,etd=?,atd=?,eta=?,ata=?,armator=?,forwarder=?,bl=?,navlun=?,durum=?,kargo=?,notlar=? WHERE id=?`,
+      [...vals, id]);
+    toast('Güncellendi','Konteynır kaydı güncellendi','success');
+  } else {
+    db.run(`INSERT INTO shipments (cont_no,musteri,tip,adet,pol,pod,etd,atd,eta,ata,armator,forwarder,bl,navlun,durum,kargo,notlar) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, vals);
+    toast('Eklendi','Yeni konteynır eklendi','success');
+  }
+  saveDB(); closeModal('shipmentModal');
+  renderShipments(); renderDashboard();
+  checkAlarms();
+}
+
+function deleteShipment(id) {
+  if (!confirm('Bu konteynırı silmek istediğinizden emin misiniz?')) return;
+  db.run('DELETE FROM shipments WHERE id=?', [id]);
+  saveDB(); renderShipments(); renderDashboard();
+  toast('Silindi','Konteynır kaydı silindi','warn');
+}
+
+function editShipment(id) {
+  const s = query('SELECT * FROM shipments WHERE id=?', [id])[0];
+  if (!s) return;
+  document.getElementById('editShipId').value = id;
+  document.getElementById('shipmentModalTitle').textContent = 'Konteynır Düzenle';
+  document.getElementById('sContNo').value = s.cont_no||'';
+  document.getElementById('sMüşteri').value = s.musteri||'';
+  document.getElementById('sTip').value = s.tip||'20DC';
+  document.getElementById('sAdet').value = s.adet||1;
+  document.getElementById('sPOL').value = s.pol||'';
+  document.getElementById('sPOD').value = s.pod||'';
+  document.getElementById('sETD').value = s.etd||'';
+  document.getElementById('sATD').value = s.atd||'';
+  document.getElementById('sETA').value = s.eta||'';
+  document.getElementById('sATA').value = s.ata||'';
+  document.getElementById('sArmator').value = s.armator||'';
+  setCBValue('sArmator', s.armator||'');
+  document.getElementById('sForwarder').value = s.forwarder||'';
+  document.getElementById('sBL').value = s.bl||'';
+  document.getElementById('sNavlun').value = s.navlun||'';
+  document.getElementById('sDurum').value = s.durum||'Yükleme Bekleniyor';
+  document.getElementById('sKargo').value = s.kargo||'';
+  document.getElementById('sNot').value = s.notlar||'';
+  openModal('shipmentModal');
+}
+
+function viewShipment(id) {
+  const s = query('SELECT * FROM shipments WHERE id=?', [id])[0];
+  if (!s) return;
+  const today = new Date();
+  const diffDays = (a,b) => Math.round((new Date(a)-new Date(b))/(1000*60*60*24));
+
+  let etaDiff = s.eta ? diffDays(s.eta, today) : null;
+  let etaText = etaDiff !== null ? (etaDiff > 0 ? `${etaDiff} gün kaldı` : etaDiff === 0 ? 'Bugün!' : `${Math.abs(etaDiff)} gün geçti 🚨`) : '—';
+
+  document.getElementById('detailContent').innerHTML = `
+    <div style="margin-bottom:20px">
+      <div style="font-size:11px;color:var(--accent);font-family:'JetBrains Mono',monospace;letter-spacing:2px">KONTEYNER DETAYI</div>
+      <div style="font-size:24px;font-family:'Instrument Serif',serif;margin:6px 0">${s.cont_no||'—'}</div>
+      ${statusBadge(s.durum)}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+      <div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px">MÜŞTERİ</div>
+        <div style="font-weight:600">${s.musteri||'—'}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px">KARGO</div>
+        <div style="font-weight:600">${s.kargo||'—'}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px">ROTA</div>
+        <div style="font-weight:600;font-size:13px">${s.pol||'—'} → ${s.pod||'—'}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px">ARMATÖR</div>
+        <div style="font-weight:600">${s.armator||'—'}</div>
+      </div>
+    </div>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot ${s.atd?'done':'pending'}"></div>
+        <div class="timeline-time">ETD: ${s.etd||'—'} ${s.atd?'| ATD: '+s.atd:''}</div>
+        <div class="timeline-title">Yükleme (${s.pol})</div>
+        <div class="timeline-desc">${s.atd?'✅ Yüklendi':'⏳ Bekleniyor'}</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot ${s.atd&&!s.ata?'active':'pending'}"></div>
+        <div class="timeline-time">Transit Süre</div>
+        <div class="timeline-title">Seyir</div>
+        <div class="timeline-desc">Armatör: ${s.armator||'—'} | B/L: ${s.bl||'—'}</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot ${s.ata?'done':etaDiff!==null&&etaDiff<=0?'alert':'pending'}"></div>
+        <div class="timeline-time">ETA: ${s.eta||'—'} ${s.ata?'| ATA: '+s.ata:''}</div>
+        <div class="timeline-title">Varış (${s.pod})</div>
+        <div class="timeline-desc">${s.ata?'✅ Ulaştı':'⏳ '+etaText}</div>
+      </div>
+    </div>
+    ${s.notlar?`<div class="alert-box info" style="margin-top:16px"><div><div class="alert-title">📝 Notlar</div><div class="alert-text">${s.notlar}</div></div></div>`:''}
+    <div class="form-actions" style="margin-top:16px">
+      <button class="btn btn-primary btn-sm" onclick="closeModal('detailModal');editShipment(${s.id})">✏️ Düzenle</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('detailModal')">Kapat</button>
+    </div>
+  `;
+  openModal('detailModal');
+}
+
+// Shipment modal reset
+document.getElementById('shipmentModal').querySelector('.modal-close').addEventListener('click', () => {
+  document.getElementById('editShipId').value='';
+  document.getElementById('shipmentModalTitle').textContent='Yeni Konteynır Ekle';
+});
+
+// ===================== ALERTS =====================
+function renderAlerts() {
+  const ships = query('SELECT * FROM shipments');
+  const alerts = buildAlerts(ships);
+
+  const el = document.getElementById('alertsContent');
+  if (!el) return;
+
+  if (alerts.length === 0) {
+    el.innerHTML = `<div class="alert-box success"><div><div class="alert-title">✅ Herşey Yolunda</div><div class="alert-text">Şu an aktif alarm bulunmamaktadır.</div></div></div>`;
+    return;
+  }
+
+  el.innerHTML = alerts.map(a => `
+    <div class="alert-box ${a.type}">
+      <div style="font-size:24px">${a.type==='danger'?'🚨':'⏰'}</div>
+      <div>
+        <div class="alert-title">${a.title}</div>
+        <div class="alert-text">${a.msg}</div>
+      </div>
+    </div>`).join('');
+}
+
+function checkAlarms() {
+  const ships = query('SELECT * FROM shipments');
+  const alerts = buildAlerts(ships);
+  const badge = document.getElementById('alertBadge');
+  if (alerts.length > 0) {
+    badge.style.display='inline';
+    badge.textContent = alerts.length + ' Alarm';
+  } else badge.style.display='none';
+}
+
+// ===================== RATES MARKET =====================
+function renderRates_market() {
+  // Stats
+  document.getElementById('marketStats').innerHTML = `
+    <div class="stat-card blue"><div class="stat-label">SCFI (Shanghai)</div><div class="stat-value" style="color:var(--accent);font-size:22px">1,847</div><div class="stat-sub">↑ +3.2% Haftalık</div></div>
+    <div class="stat-card gold"><div class="stat-label">CCFI</div><div class="stat-value" style="color:var(--gold);font-size:22px">1,023</div><div class="stat-sub">↓ -1.1% Haftalık</div></div>
+    <div class="stat-card green"><div class="stat-label">WCI (Drewry)</div><div class="stat-value" style="color:var(--green);font-size:22px">$2,340</div><div class="stat-sub">↑ +5.4% Aylık</div></div>
+    <div class="stat-card red"><div class="stat-label">BDI (Bulk)</div><div class="stat-value" style="color:var(--red);font-size:22px">1,240</div><div class="stat-sub">↓ -2.8%</div></div>
+    <div class="stat-card orange"><div class="stat-label">FBX (Freightos)</div><div class="stat-value" style="color:var(--orange);font-size:22px">$1,920</div><div class="stat-sub">Sabit</div></div>
+  `;
+
+  // Route index table
+  document.getElementById('routeIndexTable').innerHTML = `
+    <table>
+      <thead><tr><th>Rota</th><th>Spot (40HC)</th><th>Trend</th><th>TT</th></tr></thead>
+      <tbody>
+        ${[
+          ['Shanghai → Rotterdam','$3,200','↑ +8%','28g'],
+          ['Shanghai → Mersin','$2,400','→ 0%','35g'],
+          ['Hamburg → Istanbul','$1,200','↓ -3%','18g'],
+          ['LA → Shanghai','$800','↑ +2%','21g'],
+          ['Mersin → Jebel Ali','$1,500','↑ +5%','12g'],
+          ['Rotterdam → Mersin','$1,900','↑ +1%','14g'],
+        ].map(r => `<tr>
+          <td style="font-size:12px">${r[0]}</td>
+          <td class="mono" style="color:var(--accent)">${r[1]}</td>
+          <td style="color:${r[2].includes('↑')?'var(--green)':r[2].includes('↓')?'var(--red)':'var(--text3)'}">${r[2]}</td>
+          <td style="font-size:12px">${r[3]}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+
+  // Charts
+  const ctx1 = document.getElementById('routeChart');
+  if (ctx1) {
+    if (window._routeChart) window._routeChart.destroy();
+    const months = ['Eki','Kas','Ara','Oca','Şub','Mar'];
+    window._routeChart = new Chart(ctx1, {
+      type: 'line',
+      data: {
+        labels: months,
+        datasets: [
+          { label: 'SHA→MER', data: [2100,2200,2400,2600,2500,2400], borderColor:'#00d4ff', tension:0.4, fill:false, pointRadius:3 },
+          { label: 'HAM→IST', data: [1100,1200,1300,1200,1150,1200], borderColor:'#f59e0b', tension:0.4, fill:false, pointRadius:3 },
+          { label: 'RTM→MER', data: [1700,1800,2000,1900,1900,1900], borderColor:'#10b981', tension:0.4, fill:false, pointRadius:3 },
+        ]
+      },
+      options: { responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{labels:{color:'#94a3b8',font:{family:'Space Grotesk'}}} },
+        scales:{ x:{ticks:{color:'#64748b'},grid:{color:'#1e2d45'}}, y:{ticks:{color:'#64748b',callback:v=>'$'+v.toLocaleString()},grid:{color:'#1e2d45'}} }
+      }
+    });
+  }
+
+  const ctx2 = document.getElementById('spotContractChart');
+  if (ctx2) {
+    if (window._scChart) window._scChart.destroy();
+    window._scChart = new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: ['SHA→MER','SHA→RTM','HAM→IST','MER→JEA','LA→SHA'],
+        datasets: [
+          { label: 'Spot Fiyat', data:[2400,3200,1200,1500,800], backgroundColor:'rgba(0,212,255,0.6)' },
+          { label: 'Kontrat Fiyat', data:[2100,2800,1100,1400,750], backgroundColor:'rgba(245,158,11,0.6)' },
+        ]
+      },
+      options: { responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{labels:{color:'#94a3b8'}} },
+        scales:{ x:{ticks:{color:'#64748b'},grid:{color:'#1e2d45'}}, y:{ticks:{color:'#64748b',callback:v=>'$'+v},grid:{color:'#1e2d45'}} }
+      }
+    });
+  }
+
+  // Market alerts
+  document.getElementById('marketAlerts').innerHTML = [
+    { type:'warn', title:'Kızıldeniz Güzergahı Uyarısı', msg:'Yemen kaynaklı güvenlik sorunları nedeniyle Süveyş Kanalı rotasında %15-25 ek maliyet beklenmektedir. Güney Afrika rotası alternatif olarak değerlendirilebilir. TT +10-14 gün artış.' },
+    { type:'info', title:'Çin Yeni Yılı Etkisi', msg:'Şubat ayı için erken rezervasyon önerilmektedir. Bu dönemde kapasiteler %40 daralabilir, fiyatlar %20-35 artış gösterebilir.' },
+    { type:'danger', title:'Port Congestion — Los Angeles', msg:'LA Limanı yoğunluğu kritik seviyede. Bekleme süreleri 5-8 güne ulaşmış durumda. Alternatif: Seattle, Houston güzergahları.' },
+    { type:'success', title:'Avrupa Rotalarında Normalleşme', msg:'Kuzey Avrupa hatlarında spot fiyatlar 6 aylık düşük seviyede. Kontrat bağlamak için iyi fırsat penceresi.' },
+  ].map(a => `<div class="alert-box ${a.type}"><div><div class="alert-title">${a.title}</div><div class="alert-text">${a.msg}</div></div></div>`).join('');
+}
+
+// ===================== PRICE LIST =====================
+function renderRates() {
+  const search = (document.getElementById('rateSearch')?.value||'').toLowerCase();
+  const typeF = document.getElementById('rateTypeFilter')?.value||'';
+  const currF = document.getElementById('rateCurrFilter')?.value||'';
+  const dateF = document.getElementById('rateDateFilter')?.value||'';
+
+  let rates = query('SELECT * FROM rates ORDER BY tarih DESC, id DESC');
+  if (search) rates = rates.filter(r => (r.armator+r.forwarder+r.pol+r.pod+r.notlar).toLowerCase().includes(search));
+  if (typeF) rates = rates.filter(r => r.tip === typeF);
+  if (currF) rates = rates.filter(r => r.curr === currF);
+  if (dateF) rates = rates.filter(r => r.tarih >= dateF);
+
+  const tbody = document.getElementById('ratesTable');
+  if (!tbody) return;
+  const today = new Date().toISOString().split('T')[0];
+
+  tbody.innerHTML = rates.map(r => {
+    const expired = r.gecerlilik && r.gecerlilik < today;
+    return `<tr style="${expired?'opacity:0.5':''}">
+      <td class="mono" style="font-size:11px">${r.tarih||'—'}</td>
+      <td style="font-weight:600">${r.armator||'—'}</td>
+      <td style="font-size:12px">${r.pol||'—'}</td>
+      <td style="font-size:12px">${r.pod||'—'}</td>
+      <td><span class="tag">${r.tip||'—'}</span></td>
+      <td class="mono" style="color:var(--accent);font-weight:700">${r.fiyat?.toLocaleString()||'—'}</td>
+      <td>${r.curr||'USD'}</td>
+      <td class="mono">${r.tt||'—'}</td>
+      <td class="mono" style="font-size:11px;color:${expired?'var(--red)':'var(--text3)'}">${r.gecerlilik||'—'}${expired?' ⚠️':''}</td>
+      <td style="font-size:12px">${r.forwarder||'—'}</td>
+      <td style="font-size:11px;color:var(--text3);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.notlar||''}">${r.notlar||'—'}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-ghost btn-sm" onclick="editRate(${r.id})">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteRate(${r.id})">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="12" style="text-align:center;padding:30px;color:var(--text3)">Kayıt bulunamadı</td></tr>`;
+}
+
+function saveRate() {
+  const id = document.getElementById('editRateId').value;
+  const vals = [
+    document.getElementById('rDate').value,
+    document.getElementById('rArmator').value,
+    document.getElementById('rForwarder').value,
+    document.getElementById('rPOL').value,
+    document.getElementById('rPOD').value,
+    document.getElementById('rTip').value,
+    parseFloat(document.getElementById('rFiyat').value)||0,
+    document.getElementById('rCurr').value,
+    parseInt(document.getElementById('rTT').value)||0,
+    document.getElementById('rGecerli').value||null,
+    document.getElementById('rNot').value,
+  ];
+  if (!vals[0]||!vals[1]||!vals[3]||!vals[4]) { toast('Hata','Zorunlu alanları doldurun','danger'); return; }
+  if (id) {
+    db.run(`UPDATE rates SET tarih=?,armator=?,forwarder=?,pol=?,pod=?,tip=?,fiyat=?,curr=?,tt=?,gecerlilik=?,notlar=? WHERE id=?`, [...vals,id]);
+    toast('Güncellendi','Fiyat kaydı güncellendi','success');
+  } else {
+    db.run(`INSERT INTO rates (tarih,armator,forwarder,pol,pod,tip,fiyat,curr,tt,gecerlilik,notlar) VALUES (?,?,?,?,?,?,?,?,?,?,?)`, vals);
+    toast('Eklendi','Fiyat eklendi','success');
+  }
+  saveDB(); closeModal('rateModal'); renderRates();
+}
+
+function editRate(id) {
+  const r = query('SELECT * FROM rates WHERE id=?', [id])[0];
+  if (!r) return;
+  document.getElementById('editRateId').value = id;
+  document.getElementById('rDate').value = r.tarih||'';
+  document.getElementById('rArmator').value = r.armator||'';
+  setCBValue('rArmator', r.armator||'');
+  document.getElementById('rForwarder').value = r.forwarder||'';
+  document.getElementById('rPOL').value = r.pol||'';
+  document.getElementById('rPOD').value = r.pod||'';
+  document.getElementById('rTip').value = r.tip||'20DC';
+  document.getElementById('rFiyat').value = r.fiyat||'';
+  document.getElementById('rCurr').value = r.curr||'USD';
+  document.getElementById('rTT').value = r.tt||'';
+  document.getElementById('rGecerli').value = r.gecerlilik||'';
+  document.getElementById('rNot').value = r.notlar||'';
+  openModal('rateModal');
+}
+
+function deleteRate(id) {
+  if (!confirm('Fiyat kaydını silmek istediğinizden emin misiniz?')) return;
+  db.run('DELETE FROM rates WHERE id=?', [id]);
+  saveDB(); renderRates(); toast('Silindi','Fiyat kaydı silindi','warn');
+}
+
+// ===================== QUOTES =====================
+function generateQuoteNo() {
+  const y = new Date().getFullYear();
+  const rows = query('SELECT COUNT(*) as c FROM quotes');
+  const n = (rows[0]?.c||0) + 1;
+  return `TKL-${y}-${String(n).padStart(4,'0')}`;
+}
+
+function initNewQuote() {
+  document.getElementById('newQuoteId').textContent = generateQuoteNo();
+  document.getElementById('newQuoteDate').textContent = new Date().toLocaleDateString('tr-TR', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  // Set default validity
+  const v = new Date(); v.setDate(v.getDate()+14);
+  document.getElementById('qValidUntil').value = v.toISOString().split('T')[0];
+  updateTotal();
+}
+
+function addPriceRow() {
+  const row = document.createElement('div');
+  row.className = 'priceRow form-grid';
+  row.style.cssText = 'align-items:end;border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:16px';
+  row.innerHTML = `
+    <div class="form-group"><label>Kalem</label><input type="text" class="pr-item" placeholder="THC, BAF, EBS..."></div>
+    <div class="form-group"><label>Tutar</label><input type="number" class="pr-amount" placeholder="0" min="0" oninput="updateTotal()"></div>
+    <div class="form-group"><label>Para Birimi</label><select class="pr-curr"><option>USD</option><option>EUR</option><option>TRY</option></select></div>
+    <div class="form-group"><label>Birim</label><select class="pr-unit"><option>/ Konteyner</option><option>/ TEU</option><option>/ Sevkiyat</option></select></div>
+    <div style="padding-bottom:8px"><button class="btn btn-danger btn-sm" onclick="this.closest('.priceRow').remove();updateTotal()">🗑</button></div>
+  `;
+  document.getElementById('priceRows').appendChild(row);
+  row.querySelector('.pr-amount').addEventListener('input', updateTotal);
+}
+
+function updateTotal() {
+  const amounts = Array.from(document.querySelectorAll('.pr-amount')).map(i=>parseFloat(i.value)||0);
+  const qty = parseInt(document.getElementById('qContQty')?.value)||1;
+  const total = amounts.reduce((a,b)=>a+b,0) * qty;
+  document.getElementById('qTotal').textContent = 'USD ' + total.toLocaleString();
+}
+document.getElementById('qContQty')?.addEventListener('input', updateTotal);
+
+function saveQuote(durum) {
+  const items = Array.from(document.querySelectorAll('.priceRow')).map(r => ({
+    item: r.querySelector('.pr-item')?.value||'',
+    amount: parseFloat(r.querySelector('.pr-amount')?.value)||0,
+    curr: r.querySelector('.pr-curr')?.value||'USD',
+    unit: r.querySelector('.pr-unit')?.value||'',
+  }));
+
+  const qty = parseInt(document.getElementById('qContQty').value)||1;
+  const total = items.reduce((a,b)=>a+b.amount,0)*qty;
+  const qno = document.getElementById('newQuoteId').textContent;
+
+  const vals = [
+    qno,
+    document.getElementById('qFirma').value,
+    document.getElementById('qKisi').value,
+    document.getElementById('qEmail').value,
+    document.getElementById('qTel').value,
+    document.getElementById('qArmator').value,
+    document.getElementById('qForwarder').value,
+    document.getElementById('qPOL').value,
+    document.getElementById('qPOD').value,
+    document.getElementById('qContType').value,
+    qty,
+    parseInt(document.getElementById('qTT').value)||0,
+    document.getElementById('qFrequency').value,
+    document.getElementById('qETD').value||null,
+    document.getElementById('qTransship').value,
+    JSON.stringify(items),
+    total, 'USD',
+    document.getElementById('qValidUntil').value,
+    document.getElementById('qPayment').value,
+    document.getElementById('qIncludes').value,
+    document.getElementById('qExcludes').value,
+    document.getElementById('qNotes').value,
+    durum,
+  ];
+
+  if (!vals[1]||!vals[5]||!vals[7]||!vals[8]||!vals[9]||!vals[11]) {
+    toast('Eksik Bilgi','Zorunlu alanları (*) doldurun','danger'); return;
+  }
+
+  db.run(`INSERT INTO quotes (quote_no,firma,kisi,email,tel,armator,forwarder,pol,pod,cont_type,cont_qty,tt,frequency,etd,transship,fiyat_json,toplam,curr,gecerlilik,odeme,includes,excludes,notlar,durum) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, vals);
+  saveDB(); toast('Kaydedildi',`Teklif ${qno} oluşturuldu`,'success');
+  showPage('quotes');
+}
+
+function renderQuotes() {
+  const search = (document.getElementById('quoteSearch')?.value||'').toLowerCase();
+  const statusF = document.getElementById('quoteStatusFilter')?.value||'';
+  let quotes = query('SELECT * FROM quotes ORDER BY id DESC');
+  if (search) quotes = quotes.filter(q=>(q.quote_no+q.firma+q.pol+q.pod).toLowerCase().includes(search));
+  if (statusF) quotes = quotes.filter(q=>q.durum===statusF);
+
+  const tbody = document.getElementById('quotesTable');
+  if (!tbody) return;
+  const today = new Date().toISOString().split('T')[0];
+
+  tbody.innerHTML = quotes.map(q => {
+    const expired = q.gecerlilik && q.gecerlilik < today && q.durum === 'Gönderildi';
+    return `<tr>
+      <td class="mono" style="color:var(--accent)">${q.quote_no}</td>
+      <td>
+        <div style="font-weight:600">${q.firma}</div>
+        <div style="font-size:11px;color:var(--text3)">${q.kisi||''}</div>
+      </td>
+      <td style="font-size:12px">${q.pol||'—'} → ${q.pod||'—'}</td>
+      <td><span class="tag">${q.cont_type||'—'}</span> x${q.cont_qty||1}</td>
+      <td>${q.armator||'—'}</td>
+      <td class="mono" style="color:var(--accent);font-weight:700">${q.curr||'USD'} ${(q.toplam||0).toLocaleString()}</td>
+      <td>${q.tt||'—'} gün</td>
+      <td class="mono" style="font-size:11px;color:${expired?'var(--red)':'var(--text3)'}">${q.gecerlilik||'—'}</td>
+      <td><span class="status status-${q.durum==='Onaylandı'?'ok':q.durum==='Reddedildi'?'alert':q.durum==='Gönderildi'?'transit':'warn'}">${q.durum}</span></td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-ghost btn-sm" onclick="viewQuote(${q.id})">👁 PDF</button>
+          <button class="btn btn-ghost btn-sm" onclick="updateQuoteStatus(${q.id},'Onaylandı')">✅</button>
+          <button class="btn btn-ghost btn-sm" onclick="updateQuoteStatus(${q.id},'Reddedildi')">❌</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteQuote(${q.id})">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--text3)">Kayıt bulunamadı</td></tr>`;
+}
+
+function updateQuoteStatus(id, durum) {
+  db.run('UPDATE quotes SET durum=? WHERE id=?', [durum, id]);
+  saveDB(); renderQuotes(); toast('Güncellendi',`Teklif durumu: ${durum}`,'success');
+}
+function deleteQuote(id) {
+  if (!confirm('Teklifi silmek istiyor musunuz?')) return;
+  db.run('DELETE FROM quotes WHERE id=?', [id]);
+  saveDB(); renderQuotes(); toast('Silindi','Teklif silindi','warn');
+}
+
+function viewQuote(id) {
+  const q = query('SELECT * FROM quotes WHERE id=?', [id])[0];
+  if (!q) return;
+  const items = JSON.parse(q.fiyat_json||'[]');
+  const firma = getSetting('firma') || 'FreightPro Lojistik';
+  const email = getSetting('email') || 'info@freightpro.com';
+
+  document.getElementById('quoteViewContent').innerHTML = `
+    <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden">
+      <div style="background:linear-gradient(135deg,#0a0f1e,#1a2235);padding:28px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div style="font-size:28px;font-family:'Instrument Serif',serif;color:#e2e8f0">NAVLUN FİYAT TEKLİFİ</div>
+            <div style="font-family:'JetBrains Mono',monospace;color:#00d4ff;font-size:13px;margin-top:6px">${q.quote_no}</div>
+            <div style="font-size:12px;color:#64748b;margin-top:4px">Tarih: ${q.created_at?.split('T')[0]||''}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-weight:700;font-size:16px;color:#e2e8f0">⚓ ${firma}</div>
+            <div style="font-size:11px;color:#64748b">${email}</div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div>
+          <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">MÜŞTERİ</div>
+          <div style="font-weight:700;font-size:16px">${q.firma}</div>
+          ${q.kisi?`<div style="color:#94a3b8;font-size:13px">${q.kisi}</div>`:''}
+          ${q.email?`<div style="color:#94a3b8;font-size:13px">${q.email}</div>`:''}
+        </div>
+        <div>
+          <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">TAŞIMA BİLGİLERİ</div>
+          <div style="font-size:13px;color:#e2e8f0"><strong>Armatör:</strong> ${q.armator}</div>
+          <div style="font-size:13px;color:#e2e8f0"><strong>Rota:</strong> ${q.pol} → ${q.pod}</div>
+          <div style="font-size:13px;color:#e2e8f0"><strong>Konteyner:</strong> ${q.cont_type} x${q.cont_qty}</div>
+          <div style="font-size:13px;color:#e2e8f0"><strong>Transit Süre:</strong> ${q.tt} gün</div>
+          ${q.transship?`<div style="font-size:13px;color:#e2e8f0"><strong>Aktarma:</strong> ${q.transship}</div>`:''}
+          ${q.frequency?`<div style="font-size:13px;color:#e2e8f0"><strong>Sefer Sıklığı:</strong> ${q.frequency}</div>`:''}
+        </div>
+      </div>
+      <div style="padding:0 24px 24px">
+        <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">ÜCRET KALEMLERİ</div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr style="border-bottom:1px solid #1e2d45">
+            <th style="text-align:left;padding:8px;color:#64748b;font-size:11px">KALEM</th>
+            <th style="text-align:right;padding:8px;color:#64748b;font-size:11px">TUTAR</th>
+            <th style="text-align:left;padding:8px;color:#64748b;font-size:11px">BİRİM</th>
+          </tr></thead>
+          <tbody>
+            ${items.map(i=>`<tr style="border-bottom:1px solid rgba(30,45,69,0.5)">
+              <td style="padding:10px 8px;color:#e2e8f0">${i.item}</td>
+              <td style="padding:10px 8px;text-align:right;font-family:'JetBrains Mono',monospace;color:#00d4ff;font-weight:700">${i.curr} ${i.amount.toLocaleString()}</td>
+              <td style="padding:10px 8px;color:#94a3b8;font-size:12px">${i.unit}</td>
+            </tr>`).join('')}
+          </tbody>
+          <tfoot><tr style="background:rgba(0,212,255,0.05)">
+            <td style="padding:12px 8px;font-weight:700;color:#e2e8f0">TOPLAM (${q.cont_qty} Konteyner)</td>
+            <td style="padding:12px 8px;text-align:right;font-size:20px;font-family:'JetBrains Mono',monospace;font-weight:700;color:#00d4ff">${q.curr} ${(q.toplam||0).toLocaleString()}</td>
+            <td></td>
+          </tr></tfoot>
+        </table>
+      </div>
+      <div style="padding:0 24px 24px;display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        ${q.includes?`<div><div style="font-size:11px;color:#64748b;margin-bottom:6px;text-transform:uppercase">DAHIL</div><div style="font-size:12px;color:#94a3b8">${q.includes}</div></div>`:''}
+        ${q.excludes?`<div><div style="font-size:11px;color:#64748b;margin-bottom:6px;text-transform:uppercase">HARİÇ</div><div style="font-size:12px;color:#94a3b8">${q.excludes}</div></div>`:''}
+      </div>
+      <div style="padding:16px 24px;background:rgba(30,45,69,0.4);border-top:1px solid #1e2d45;display:flex;justify-content:space-between;font-size:12px;color:#64748b">
+        <span>Geçerlilik: <strong style="color:#e2e8f0">${q.gecerlilik||'—'}</strong></span>
+        <span>Ödeme: <strong style="color:#e2e8f0">${q.odeme||'—'}</strong></span>
+        <span>Bu teklif ${q.gecerlilik||'belirtilen tarihe'} kadar geçerlidir.</span>
+      </div>
+    </div>`;
+
+  openModal('quoteViewModal');
+}
+
+function printQuote() {
+  window.print();
+}
+
+function previewQuotePDF() {
+  saveQuote('Taslak');
+}
+
+// ===================== FRAUD ALERTS =====================
+function renderFraud() {
+  const forwarder = [
+    { type:'danger', title:'Hayali Fatura & Komisyon Şişirmesi', desc:'Forwarder, navlun faturasına gizli kalemler ekler (fumigation, port handling, documentation fee vb.) ve bu kalemleri gerçekmiş gibi gösterir. Çözüm: Detaylı Breakdown fatura isteyin, her kalemi ayrı belgeleyin.' },
+    { type:'danger', title:'Navlun Geri Alımı (Kickback)', desc:'Forwarder, armatörden aldığı iskontoya veya rebate\'e sizi dahil etmez. Kendiniz doğrudan armatörle spot fiyat alıştırması yaparak benchmark oluşturun.' },
+    { type:'warn', title:'Konşimento Manipülasyonu', desc:'B/L üzerindeki yükleme tarihi, ağırlık veya ürün tanımı değiştirilir. Orijinal B/L\'yi mutlaka kendiniz armatörden doğrulayın.' },
+    { type:'warn', title:'Sigorta Kesintisi', desc:'Forwarder kargo sigortası satıp primden komisyon alır ancak gerçekte hasarda sigorta ödemez. Bağımsız sigortacı kullanın.' },
+    { type:'warn', title:'Sahte Booking Onayı', desc:'Olmayan kapasiteyi satarak avans alınır. Armatörün resmi sistemi üzerinden booking referansını doğrulayın.' },
+    { type:'danger', title:'Double Brokering', desc:'Yük, bilinçsizce birden fazla aracıya devredilir, sorumluluk bulanıklaşır. Yükünüzün gerçek taşıyıcısını her zaman teyit edin.' },
+  ];
+
+  const armator = [
+    { type:'danger', title:'Peak Season Surcharge (PSS) Abartımı', desc:'Yüksek sezon bahanesiyle haksız ek ücretler eklenir. FMC/EU\'nun yayımladığı surcharge duyurularını takip edin, makul süre önceden bildirim zorunludur.' },
+    { type:'danger', title:'Space Guarantee İhlali', desc:'Booking alınmasına rağmen yükleme günü yer çıkmayabilir (rolling). Sözleşmede Space Guarantee ve tazminat maddesi olmasını isteyin.' },
+    { type:'warn', title:'Demurrage & Detention Tuzağı', desc:'Kasıtlı gecikmeyle veya eksik bildirimle D&D cezaları kabartılır. Free Time sürelerini sözleşmede net belirtin, portal takibini yapın.' },
+    { type:'warn', title:'BAF/GRI Belirsizliği', desc:'Yakıt zammı ve genel oran artışları önceden bildirilmeden uygulanır. BIMCO klozlarına göre BAF formülünü sözleşmede sabitleyin.' },
+    { type:'danger', title:'Port Omission', desc:'Rota değişikliğiyle varış limanınız atlanır, fazladan maliyet çıkar. Konşimentoda "Port Omission" fıkrasını inceleyin.' },
+    { type:'warn', title:'Sahte Ağırlık / VGM Manipülasyonu', desc:'VGM beyanı yanlış yapılarak ek ücret kesilir. VGM belgelerini kendiniz düzenletin ve armatörle eşleştirin.' },
+  ];
+
+  const genel = [
+    { type:'danger', title:'Letter of Credit (L/C) Uyumsuzluğu', desc:'B/L üzerindeki tarih/liman bilgileri L/C şartlarıyla uyumsuz olup ödeme bloke edilir. Akreditif şartlarını önceden forwarder ve armatörle paylaşın.' },
+    { type:'warn', title:'Gümrük Tarife Kodu Hatası', desc:'Yanlış HS kodu ek vergi ve ceza doğurur. Uzman gümrük müşavirinden GTİP teyidi alın.' },
+    { type:'danger', title:'Phishing / Sahte Ödeme Talimatı', desc:'Forwarder/armatör gibi davranan dolandırıcılar banka bilgilerini değiştirtir. Her ödeme talimatını telefon ile çift doğrulayın.' },
+    { type:'warn', title:'Tehlikeli Madde Beyanı Eksikliği', desc:'IMO sınıfı yükün eksik beyanı ciddi para cezası ve kargo reddine yol açar.' },
+  ];
+
+  const koruma = [
+    { type:'tip', title:'Karşılaştırmalı Teklif Alın', desc:'Her sevkiyat için en az 3 farklı forwarder/armatörden yazılı teklif alın ve karşılaştırın. Fiyat farklılığı >%15 ise nedenini sorgulayın.' },
+    { type:'tip', title:'Yazılı Sözleşme Zorunluluğu', desc:'Navlun, surcharge sınırları, free time, D&D tazminatı, space guarantee mutlaka yazılı sözleşmede yer almalıdır.' },
+    { type:'tip', title:'Armatör Portalı Takibi', desc:'MSC, Maersk, CMA CGM gibi büyük armatörlerin kendi müşteri portalından konteynırınızı takip edin.' },
+    { type:'tip', title:'Bağımsız Kargo Sigortası', desc:'Forwarder üzerinden değil, doğrudan sigorta şirketiyle Institute Cargo Clauses (A) kapsamında poliçe düzenleyin.' },
+    { type:'tip', title:'Freight Audit Hizmeti', desc:'Yılda en az bir kez bağımsız freight audit şirketiyle tüm navlun faturalarınızı inceletin.' },
+    { type:'tip', title:'FMC ve OTIF Şikayetleri', desc:'ABD rotalarında FMC (Federal Maritime Commission), AB rotalarında DG COMP\'e haksız uygulama şikayeti yapabilirsiniz.' },
+  ];
+
+  const render = (items) => items.map(i=>`
+    <div class="fraud-card ${i.type==='tip'?'tip':i.type==='warn'?'warn':''}">
+      <div class="fraud-tag">${i.type==='danger'?'⛔ TEHLİKE':i.type==='warn'?'⚠️ UYARI':'💡 ÖNERİ'}</div>
+      <div class="fraud-title">${i.title}</div>
+      <div class="fraud-desc">${i.desc}</div>
+    </div>`).join('');
+
+  document.getElementById('ftab-forwarder').innerHTML = render(forwarder);
+  document.getElementById('ftab-armator').innerHTML = render(armator);
+  document.getElementById('ftab-genel').innerHTML = render(genel);
+  document.getElementById('ftab-koruma').innerHTML = render(koruma);
+}
+
+// ===================== DECISION SUPPORT =====================
+function renderDecision() {
+  const ships = query('SELECT * FROM shipments');
+  const rates = query('SELECT * FROM rates ORDER BY tarih DESC');
+  const quotes = query('SELECT * FROM quotes');
+  const today = new Date();
+
+  const totalNav = ships.reduce((a,s)=>a+(s.navlun||0),0);
+  const avgNav = ships.length ? (totalNav/ships.length).toFixed(0) : 0;
+  const activeShips = ships.filter(s=>s.durum!=='Teslim Edildi').length;
+  const approvedQ = quotes.filter(q=>q.durum==='Onaylandı').length;
+  const totalQVal = quotes.filter(q=>q.durum==='Onaylandı').reduce((a,q)=>a+(q.toplam||0),0);
+
+  const el = document.getElementById('decisionContent');
+  if (!el) return;
+
+  el.innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card blue"><div class="stat-label">Aktif Sevkiyat</div><div class="stat-value" style="color:var(--accent)">${activeShips}</div><div class="stat-icon">📦</div></div>
+      <div class="stat-card gold"><div class="stat-label">Toplam Navlun</div><div class="stat-value" style="color:var(--gold);font-size:20px">$${totalNav.toLocaleString()}</div><div class="stat-icon">💰</div></div>
+      <div class="stat-card green"><div class="stat-label">Onaylı Teklif Değeri</div><div class="stat-value" style="color:var(--green);font-size:20px">$${totalQVal.toLocaleString()}</div><div class="stat-icon">✅</div></div>
+      <div class="stat-card orange"><div class="stat-label">Ortalama Navlun</div><div class="stat-value" style="color:var(--orange);font-size:20px">$${parseInt(avgNav).toLocaleString()}</div><div class="stat-icon">📊</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div class="card">
+        <div class="card-title">🎯 Aksiyon Öncelikleri</div>
+        ${[
+          { p:'YÜKSEK', text:'Varışa 7 gün kalan sevkiyatlar için gümrük ve teslimat planlamasını başlatın', c:'var(--red)' },
+          { p:'YÜKSEK', text:'Geciken ETD\'li konteynırlar için armatörle iletişime geçin ve müşterileri bilgilendirin', c:'var(--red)' },
+          { p:'ORTA', text:'Süresi dolmak üzere olan teklifleri güncelleyin veya yenileyin', c:'var(--gold)' },
+          { p:'ORTA', text:'Geçerliliği biten fiyat kotasyonlarını yenileyin', c:'var(--gold)' },
+          { p:'DÜŞÜK', text:'Aylık navlun trendlerini inceleyerek kontrat müzakerelerini planlayın', c:'var(--text3)' },
+        ].map(i=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:10px;font-weight:800;color:${i.c};min-width:55px;padding-top:2px">${i.p}</span>
+          <span style="font-size:13px;color:var(--text2)">${i.text}</span>
+        </div>`).join('')}
+      </div>
+
+      <div class="card">
+        <div class="card-title">📌 Piyasa Özeti</div>
+        ${[
+          { label:'Şangay–Mersin Spot', val:'$2,400/40HC', trend:'→ Sabit' },
+          { label:'Hamburg–Istanbul Spot', val:'$1,200/20DC', trend:'↓ -3%' },
+          { label:'Kızıldeniz Etkisi', val:'+%15-25', trend:'🔴 Devam ediyor' },
+          { label:'Çin Yeni Yılı Kapasitesi', val:'-%40', trend:'⚠️ Şubat' },
+          { label:'Avrupa Hat Fiyatı', val:'Düşük Sezonu', trend:'✅ Kontrat fırsatı' },
+        ].map(i=>`<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px">
+          <span style="color:var(--text2)">${i.label}</span>
+          <span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:12px">${i.val} <span style="color:var(--text3)">${i.trend}</span></span>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">💡 Maliyet Optimizasyon Önerileri</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+        ${[
+          { icon:'🔄', title:'Konsolidasyon', desc:'Küçük hacimleri LCL yerine konsolide ederek 40HC\'ye çevirin. Ortalama %12-18 maliyet avantajı.' },
+          { icon:'📅', title:'Kontrat Planlama', desc:'Yıllık yük hacminiz 100 TEU üzerindeyse spot yerine uzun dönem kontrat müzakeresi yapın.' },
+          { icon:'🌐', title:'Hub Rotası', desc:'Direkt sefer yoksa hub-spoke rotayı karşılaştırın. Bazen 2+ aktarmalı rota %20 daha ucuz.' },
+          { icon:'⏰', title:'Erken Rezervasyon', desc:'Yüksek sezonda 3-4 hafta önceden booking yapın. Son dakika fiyatları %30-50 daha yüksek.' },
+          { icon:'💱', title:'Döviz Hedge', desc:'USD/TRY volatilitesi için navlun ödemelerinde forward döviz kontratı değerlendirin.' },
+          { icon:'🔍', title:'Freight Audit', desc:'Yıllık navlun giderlerinizin %3-8\'ini hatalı faturalar oluşturuyor. Periyodik audit yapın.' },
+        ].map(i=>`<div style="background:var(--navy2);border-radius:var(--radius2);padding:16px;border:1px solid var(--border)">
+          <div style="font-size:24px;margin-bottom:8px">${i.icon}</div>
+          <div style="font-weight:700;font-size:13px;margin-bottom:6px">${i.title}</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6">${i.desc}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ===================== MESSAGES =====================
+function renderMessages() {
+  const ships = query('SELECT * FROM shipments WHERE ata IS NULL ORDER BY eta ASC');
+  const today = new Date();
+  const diffDays = (a,b) => Math.round((new Date(a)-new Date(b))/(1000*60*60*24));
+
+  const el = document.getElementById('messagesContent');
+  if (!el) return;
+
+  const upcoming = ships.filter(s => {
+    if (!s.eta) return false;
+    const d = diffDays(s.eta, today);
+    return d >= 0 && d <= 7;
+  });
+
+  if (upcoming.length === 0) {
+    el.innerHTML = `<div class="alert-box info"><div><div class="alert-title">ℹ️ Bilgi</div><div class="alert-text">Önümüzdeki 7 gün içinde varış beklenen konteynır bulunmamaktadır.</div></div></div>`;
+    return;
+  }
+
+  el.innerHTML = upcoming.map(s => {
+    const daysLeft = diffDays(s.eta, today);
+    const eta = s.eta;
+    const en = generateArrivalMsg(s, daysLeft, 'en');
+    const fr = generateArrivalMsg(s, daysLeft, 'fr');
+
+    return `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div>
+          <div class="mono" style="color:var(--accent)">${s.cont_no}</div>
+          <div style="font-size:13px;font-weight:600">${s.musteri} — ${s.pol} → ${s.pod}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:24px;font-weight:700;color:${daysLeft<=2?'var(--red)':'var(--gold)'}">${daysLeft} GÜN</div>
+          <div style="font-size:11px;color:var(--text3)">ETA: ${eta}</div>
+        </div>
+      </div>
+      <div class="tabs" style="margin-bottom:12px">
+        <div class="tab active" onclick="switchTab(this,'msg-en-${s.id}')">🇬🇧 English</div>
+        <div class="tab" onclick="switchTab(this,'msg-fr-${s.id}')">🇫🇷 Français</div>
+      </div>
+      <div class="tab-content active" id="msg-en-${s.id}" style="display:block">
+        <div style="background:var(--navy2);border-radius:var(--radius2);padding:16px;font-size:13px;color:var(--text2);line-height:1.8;white-space:pre-wrap;font-family:'JetBrains Mono',monospace">${en}</div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="copyText(this.previousElementSibling.textContent)">📋 Kopyala</button>
+      </div>
+      <div class="tab-content" id="msg-fr-${s.id}">
+        <div style="background:var(--navy2);border-radius:var(--radius2);padding:16px;font-size:13px;color:var(--text2);line-height:1.8;white-space:pre-wrap;font-family:'JetBrains Mono',monospace">${fr}</div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="copyText(this.previousElementSibling.textContent)">📋 Kopyala</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function generateArrivalMsg(s, daysLeft, lang) {
+  if (lang === 'en') return `Dear ${s.musteri || 'Valued Customer'},
+
+We are pleased to inform you that your shipment is expected to arrive within ${daysLeft} day(s).
+
+📦 Container No: ${s.cont_no || '—'}
+🚢 Carrier: ${s.armator || '—'}
+🔖 B/L No: ${s.bl || '—'}
+📍 Port of Origin: ${s.pol || '—'}
+📍 Port of Destination: ${s.pod || '—'}
+📅 ETA: ${s.eta || '—'}
+📦 Container Type: ${s.tip || '—'}
+🛒 Cargo: ${s.kargo || '—'}
+
+Please ensure that all import customs documents are ready and that your customs broker has been notified. Kindly confirm receipt of this message.
+
+Best regards,
+FreightPro Logistics Team`;
+
+  return `Cher(e) ${s.musteri || 'Client'},
+
+Nous avons le plaisir de vous informer que votre expédition est attendue dans ${daysLeft} jour(s).
+
+📦 N° Conteneur: ${s.cont_no || '—'}
+🚢 Transporteur: ${s.armator || '—'}
+🔖 N° B/L: ${s.bl || '—'}
+📍 Port de Chargement: ${s.pol || '—'}
+📍 Port de Destination: ${s.pod || '—'}
+📅 ETA: ${s.eta || '—'}
+📦 Type de Conteneur: ${s.tip || '—'}
+🛒 Marchandise: ${s.kargo || '—'}
+
+Veuillez vous assurer que tous les documents douaniers sont prêts et que votre transitaire a été informé. Nous vous prions de confirmer la réception de ce message.
+
+Cordialement,
+Équipe FreightPro Logistics`;
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => toast('Kopyalandı','Mesaj panoya kopyalandı','success'));
+}
+
+// ===================== SETTINGS PAGE =====================
+function renderSettingsPage() {
+  document.getElementById('setFirma').value = getSetting('firma')||'';
+  document.getElementById('setVkn').value = getSetting('vkn')||'';
+  document.getElementById('setAdres').value = getSetting('adres')||'';
+  document.getElementById('setEmail').value = getSetting('email')||'';
+  document.getElementById('setTel').value = getSetting('tel')||'';
+  document.getElementById('setWeb').value = getSetting('web')||'';
+  document.getElementById('setLogo').value = getSetting('logo')||'';
+  document.getElementById('setDelayDays').value = getSetting('delayDays')||'3';
+  document.getElementById('setArrivalWarn').value = getSetting('arrivalWarn')||'7';
+  loadMandatoryFieldsUI();
+}
+
+function saveSettings_form() {
+  ['firma','vkn','adres','email','tel','web','logo'].forEach(k => {
+    const el = document.getElementById('set'+k.charAt(0).toUpperCase()+k.slice(1));
+    if (el) setSetting(k, el.value);
+  });
+  setSetting('delayDays', document.getElementById('setDelayDays').value);
+  setSetting('arrivalWarn', document.getElementById('setArrivalWarn').value);
+  saveDB(); toast('Kaydedildi','Ayarlar başarıyla kaydedildi ✅','success');
+}
+// hook settings save button
+function saveSettings() { saveSettings_form(); }
+
+// ===================== TABS =====================
+function switchTab(el, targetId) {
+  const parent = el.closest('.card') || el.closest('.page') || document;
+  parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  parent.querySelectorAll('.tab-content').forEach(t => { t.classList.remove('active'); t.style.display='none'; });
+  el.classList.add('active');
+  const target = document.getElementById(targetId);
+  if (target) { target.classList.add('active'); target.style.display='block'; }
+}
+
+// ===================== INIT =====================
+async function init() {
+  await initDB();
+  renderDashboard();
+  checkAlarms();
+  updateMandatoryNote();
+  loadClausesFromDB();
+
+  // Periodic alarm check
+  setInterval(() => {
+    checkAlarms();
+    // Show toast for 7-day arrivals once
+    const ships = query('SELECT * FROM shipments WHERE ata IS NULL');
+    const today = new Date();
+    const diffDays = (a,b) => Math.round((new Date(a)-new Date(b))/(1000*60*60*24));
+    ships.forEach(s => {
+      if (s.eta) {
+        const d = diffDays(s.eta, today);
+        if (d === 7) toast('⏰ 7 Gün Varış',`${s.cont_no} — ${s.pod}. Müşteri bilgilendirin!`,'warn');
+      }
+    });
+  }, 60000);
+}
+
+// Reset modal on open button click
+document.querySelector('.topbar-right .btn-primary').addEventListener('click', () => {
+  document.getElementById('editShipId').value='';
+  document.getElementById('shipmentModalTitle').textContent='Yeni Konteynır Ekle';
+  ['sContNo','sMüşteri','sPOL','sPOD','sETD','sATD','sETA','sATA','sArmator','sForwarder','sBL','sNavlun','sKargo','sNot'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  document.getElementById('sTip').value='20DC';
+  document.getElementById('sAdet').value=1;
+  document.getElementById('sDurum').value='Yükleme Bekleniyor';
+});
+
+// Rate modal reset on close
+document.getElementById('rateModal').querySelector('.modal-close').addEventListener('click', () => {
+  document.getElementById('editRateId').value='';
+  ['rDate','rArmator','rForwarder','rPOL','rPOD','rFiyat','rTT','rGecerli','rNot'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+});
+
+// ===================== THEME TOGGLE =====================
+let isDark = true;
+function toggleTheme() {
+  isDark = !isDark;
+  document.body.classList.toggle('light-mode', !isDark);
+  const btn = document.getElementById('themeToggle');
+  btn.textContent = isDark ? '🌙 Gece' : '☀️ Gündüz';
+  localStorage.setItem('fpTheme', isDark ? 'dark' : 'light');
+}
+function loadTheme() {
+  const saved = localStorage.getItem('fpTheme');
+  if (saved === 'light') { isDark = true; toggleTheme(); }
+}
+
+// ===================== RFQ FORWARDERS =====================
+let rfqForwarders = [];
+
+function addRFQForwarder() {
+  const name = document.getElementById('rfqFwdName').value.trim();
+  const email = document.getElementById('rfqFwdEmail').value.trim();
+  if (!name) { toast('Hata','Forwarder adı girin','danger'); return; }
+  rfqForwarders.push({ name, email });
+  document.getElementById('rfqFwdName').value = '';
+  document.getElementById('rfqFwdEmail').value = '';
+  renderRFQForwarders();
+}
+
+function removeRFQForwarder(i) {
+  rfqForwarders.splice(i, 1);
+  renderRFQForwarders();
+}
+
+function renderRFQForwarders() {
+  const el = document.getElementById('rfqForwarderList');
+  if (!el) return;
+  if (rfqForwarders.length === 0) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:8px 0">Henüz forwarder eklenmedi</div>';
+    return;
+  }
+  el.innerHTML = rfqForwarders.map((f,i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--navy2);border-radius:var(--radius2);margin-bottom:6px;border:1px solid var(--border)">
+      <div>
+        <div style="font-weight:600;font-size:13px">${f.name}</div>
+        ${f.email ? `<div style="font-size:11px;color:var(--text3)">${f.email}</div>` : ''}
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="removeRFQForwarder(${i})">✕</button>
+    </div>`).join('');
+}
+
+function loadSavedForwarderChips() {
+  const el = document.getElementById('savedForwarderChips');
+  if (!el) return;
+  const rates = query('SELECT DISTINCT forwarder FROM rates WHERE forwarder != "" ORDER BY forwarder');
+  const ships = query('SELECT DISTINCT forwarder FROM shipments WHERE forwarder != "" ORDER BY forwarder');
+  const all = [...new Set([...rates.map(r=>r.forwarder), ...ships.map(s=>s.forwarder)].filter(Boolean))];
+  el.innerHTML = all.map(f => `
+    <span class="tag" style="cursor:pointer" onclick="addSavedForwarder('${f}')" title="Ekle">+ ${f}</span>
+  `).join('') || '<span style="font-size:12px;color:var(--text3)">Kayıtlı forwarder bulunamadı</span>';
+}
+
+function addSavedForwarder(name) {
+  if (rfqForwarders.find(f=>f.name===name)) { toast('Bilgi','Zaten ekli','warn'); return; }
+  rfqForwarders.push({ name, email: '' });
+  renderRFQForwarders();
+  toast('Eklendi', name + ' eklendi', 'success');
+}
+
+function getCheckedRFQItems() {
+  const items = [];
+  document.querySelectorAll('[id^="rfqItem_"]').forEach(cb => {
+    if (cb.checked) items.push(cb.value);
+  });
+  return items;
+}
+
+function generateRFQNo() {
+  const y = new Date().getFullYear();
+  const rows = query('SELECT COUNT(*) as c FROM rfq');
+  const n = (rows[0]?.c||0) + 1;
+  return `RFQ-${y}-${String(n).padStart(4,'0')}`;
+}
+
+// RFQ Language
+let rfqLang = 'tr';
+function setRFQLang(lang) {
+  rfqLang = lang;
+  ['TR','EN','FR'].forEach(l => {
+    const btn = document.getElementById('rfqLang'+l);
+    if (btn) btn.className = 'btn btn-sm ' + (lang === l.toLowerCase() ? 'btn-primary' : 'btn-ghost');
+  });
+}
+
+function toggleIMOFields() {
+  const val = document.getElementById('rfqIMO').value;
+  const show = val === 'Yes';
+  document.getElementById('rfqIMOClassGroup').style.display = show ? '' : 'none';
+  document.getElementById('rfqIMOPGGroup').style.display = show ? '' : 'none';
+}
+
+function addCustomRFQItem() {
+  const val = document.getElementById('rfqCustomItem').value.trim();
+  if (!val) return;
+  const list = document.getElementById('rfqItemsList');
+  const idx = Date.now();
+  const div = document.createElement('label');
+  div.style.cssText = 'display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px;';
+  div.innerHTML = `<input type="checkbox" id="rfqItem_${idx}" value="${val}" checked style="width:15px;height:15px;accent-color:var(--accent)"><span style="color:var(--text2);flex:1">${val}</span><span onclick="this.parentElement.remove()" style="cursor:pointer;color:var(--red);font-size:16px;padding:0 4px">×</span>`;
+  list.appendChild(div);
+  document.getElementById('rfqCustomItem').value = '';
+}
+
+function openRFQPrintWindow() {
+  const html = buildRFQHtml();
+  if (!html) return;
+  const win = window.open('', '_blank', 'width=900,height=1100,scrollbars=yes');
+  win.document.write(`<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <title>RFQ — FreightPro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+      * { margin:0; padding:0; box-sizing:border-box; }
+      body { font-family:'Space Grotesk',Arial,sans-serif; background:#fff; }
+      @media print {
+        body { margin:0; }
+        .no-print { display:none!important; }
+        * { -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
+        @page { margin:8mm; size:A4 portrait; }
+      }
+    </style>
+  </head><body>
+    <div class="no-print" style="background:#1e293b;padding:12px 20px;display:flex;gap:10px;align-items:center;position:sticky;top:0;z-index:100">
+      <span style="color:#fff;font-size:13px;font-weight:600;flex:1">📄 RFQ Formu — Yazdırmak veya PDF olarak kaydetmek için:</span>
+      <button onclick="window.print()" style="background:#10b981;color:#fff;border:none;padding:8px 20px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">🖨️ Yazdır / PDF Kaydet</button>
+      <button onclick="window.close()" style="background:#374151;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer">✕ Kapat</button>
+    </div>
+    <div style="padding:20px">${html}</div>
+  </body></html>`);
+  win.document.close();
+}
+
+function saveAndPrintRFQ() { openRFQPrintWindow(); }
+
+function buildRFQHtml() {
+  const pol    = document.getElementById('rfqPOL').value;
+  const pod    = document.getElementById('rfqPOD').value;
+  const kargo  = document.getElementById('rfqKargo').value;
+  const tip    = document.getElementById('rfqTip').value;
+  const adet   = document.getElementById('rfqAdet').value || '1';
+  const etd    = document.getElementById('rfqETD').value;
+  const deadline = document.getElementById('rfqDeadline').value;
+  const inco   = document.getElementById('rfqInco').value;
+  const mode   = document.getElementById('rfqMode').value;
+  const kg     = document.getElementById('rfqKg').value;
+  const cbm    = document.getElementById('rfqCBM').value;
+  const imo    = document.getElementById('rfqIMO').value;
+  const imoClass = document.getElementById('rfqIMOClass')?.value || '';
+  const imoPG  = document.getElementById('rfqIMOPG')?.value || '';
+  const pickup = document.getElementById('rfqPickup').value;
+  const delivery = document.getElementById('rfqDelivery').value;
+  const special = document.getElementById('rfqSpecial').value;
+  const notes  = document.getElementById('rfqNotes').value;
+  const hs     = document.getElementById('rfqHS').value;
+  const items  = getCheckedRFQItems();
+  const firma  = getSetting('firma') || 'FreightPro Lojistik';
+  const email  = getSetting('email') || '';
+  const tel    = getSetting('tel') || '';
+  const adres  = getSetting('adres') || '';
+  const web    = getSetting('web') || '';
+  const logo   = getSetting('logo') || '';
+  const rfqNo  = 'RFQ-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-4);
+  const lang   = rfqLang;
+
+  if (!pol || !pod || !kargo) {
+    toast('Eksik Bilgi', 'POL, POD ve Kargo alanları zorunludur', 'danger');
+    return null;
+  }
+
+  // Get saved clauses for this language
+  const allClauses = getSavedClauses();
+  const filteredClauses = allClauses.filter(c => c.lang === 'all' || c.lang === lang);
+
+  const isIMO = imo === 'Yes';
+
+  // Multi-language strings
+  const t = {
+    tr: {
+      rfqTitle: 'Navlun Fiyat Talebi',
+      rfqSub: 'REQUEST FOR QUOTATION / NAVLUN FİYAT TALEBİ',
+      intro1: 'Sayın Yetkili / Dear Sir or Madam,',
+      intro2: 'Aşağıda detayları belirtilen sevkiyatımız için navlun fiyat teklifinizi talep etmekteyiz.',
+      deadline: 'Son teklif tarihi / Offer deadline:',
+      intro3: 'Teklifinizi lütfen tüm kalemler için ayrı ayrı belirterek iletiniz.',
+      cargo: '📦 KARGO BİLGİLERİ / CARGO DETAILS',
+      ship: '🚢 TAŞIMA BİLGİLERİ / SHIPMENT DETAILS',
+      charges: '📋 LÜTFEN AŞAĞIDA BELİRTİLEN KALEMLERİ AYRI AYRI BELİRTİNİZ',
+      notes: '📝 ÖZEL NOTLAR',
+      clauses: '📜 GENEL ŞARTLAR & HUSUSLAR',
+      signBy: 'TEKLİFİ VEREN / QUOTATION BY',
+      validity: 'TEKLİF GEÇERLİLİK / OFFER VALIDITY',
+      validNote: 'Teklifler bu tarihten sonra geçersiz sayılacaktır.',
+      footer: 'Teklifinizi lütfen şu adrese iletiniz:',
+      product: 'Ürün / Commodity', hs: 'HS / GTİP Kodu', equip: 'Konteyner / Equipment',
+      weight: 'Brüt Ağırlık / Gross Weight', vol: 'Hacim / Volume', dg: 'Tehlikeli Madde / DG',
+      pg: 'Packing Group', spec: 'Özel Şartlar', polLbl: 'POL', polAddr: 'Pick-up Noktası',
+      podLbl: 'POD', podAddr: 'Teslimat Noktası', etdLbl: 'Tahmini ETD', incoLbl: 'Incoterms',
+      modeLbl: 'Taşıma Tipi', signLine: 'Adı Soyadı / İmza / Tarih',
+      dangerous: 'DANGEROUS GOODS / TEHLİKELİ MADDE YÜKÜ',
+      dangerSub: 'Bu sevkiyat IMO/IMDG kapsamında tehlikeli madde içermektedir.',
+      chargeNo: '#', chargeName: 'Kalem / Charge Item', chargeRate: 'Fiyat / Rate',
+      chargeUnit: 'Birim / Unit', chargeCurr: 'Para / Curr.', mandatory: 'ZORUNLU',
+      perCont: '/ Konteyner',
+    },
+    en: {
+      rfqTitle: 'Request for Quotation',
+      rfqSub: 'REQUEST FOR QUOTATION — FREIGHT RATE INQUIRY',
+      intro1: 'Dear Sir or Madam,',
+      intro2: 'We kindly request your freight rate quotation for the shipment detailed below.',
+      deadline: 'Offer deadline:',
+      intro3: 'Please provide your offer with each charge item listed separately.',
+      cargo: '📦 CARGO DETAILS',
+      ship: '🚢 SHIPMENT DETAILS',
+      charges: '📋 PLEASE QUOTE EACH ITEM SEPARATELY',
+      notes: '📝 SPECIAL INSTRUCTIONS',
+      clauses: '📜 TERMS & CONDITIONS',
+      signBy: 'QUOTATION BY',
+      validity: 'OFFER VALIDITY',
+      validNote: 'Offers will be invalid after this date.',
+      footer: 'Please send your quotation to:',
+      product: 'Commodity', hs: 'HS Code', equip: 'Equipment', weight: 'Gross Weight',
+      vol: 'Volume', dg: 'Dangerous Goods', pg: 'Packing Group', spec: 'Special Requirements',
+      polLbl: 'Port of Loading (POL)', polAddr: 'Pick-up / Origin Address',
+      podLbl: 'Port of Discharge (POD)', podAddr: 'Delivery Address',
+      etdLbl: 'Estimated ETD', incoLbl: 'Incoterms', modeLbl: 'Shipment Type',
+      signLine: 'Name / Signature / Date',
+      dangerous: 'DANGEROUS GOODS NOTICE',
+      dangerSub: 'This shipment contains dangerous goods under IMO/IMDG regulations.',
+      chargeNo: '#', chargeName: 'Charge Item', chargeRate: 'Rate', chargeUnit: 'Unit',
+      chargeCurr: 'Currency', mandatory: 'REQUIRED', perCont: '/ Container',
+    },
+    fr: {
+      rfqTitle: 'Demande de Cotation',
+      rfqSub: 'DEMANDE DE COTATION / REQUEST FOR QUOTATION',
+      intro1: 'Madame, Monsieur,',
+      intro2: 'Nous vous prions de bien vouloir nous soumettre votre cotation pour l\'expédition détaillée ci-dessous.',
+      deadline: 'Date limite de cotation:',
+      intro3: 'Veuillez indiquer chaque poste de coût séparément.',
+      cargo: '📦 DÉTAILS DE LA CARGAISON',
+      ship: '🚢 DÉTAILS DE L\'EXPÉDITION',
+      charges: '📋 VEUILLEZ COTER CHAQUE POSTE SÉPARÉMENT',
+      notes: '📝 NOTES SPÉCIALES',
+      clauses: '📜 CONDITIONS GÉNÉRALES',
+      signBy: 'COTATION PAR',
+      validity: 'VALIDITÉ DE L\'OFFRE',
+      validNote: 'Les offres seront invalides après cette date.',
+      footer: 'Veuillez envoyer votre cotation à:',
+      product: 'Marchandise', hs: 'Code SH', equip: 'Équipement',
+      weight: 'Poids Brut', vol: 'Volume', dg: 'Marchandises Dangereuses',
+      pg: 'Groupe d\'emballage', spec: 'Exigences Spéciales',
+      polLbl: 'Port de Chargement (POL)', polAddr: 'Adresse d\'enlèvement',
+      podLbl: 'Port de Déchargement (POD)', podAddr: 'Adresse de livraison',
+      etdLbl: 'ETD Estimée', incoLbl: 'Incoterms', modeLbl: 'Type de transport',
+      signLine: 'Nom / Signature / Date',
+      dangerous: 'AVIS MARCHANDISES DANGEREUSES',
+      dangerSub: 'Cette expédition contient des marchandises dangereuses selon les règlements IMO/IMDG.',
+      chargeNo: 'N°', chargeName: 'Poste de Coût', chargeRate: 'Tarif', chargeUnit: 'Unité',
+      chargeCurr: 'Devise', mandatory: 'OBLIGATOIRE', perCont: '/ Conteneur',
+    }
+  };
+  const s = t[lang] || t.tr;
+
+  const fmtDate = d => {
+    if (!d) return '—';
+    const opts = lang === 'tr'
+      ? {day:'2-digit',month:'long',year:'numeric'}
+      : {day:'2-digit',month:'long',year:'numeric'};
+    try { return new Date(d).toLocaleDateString(lang === 'tr' ? 'tr-TR' : lang === 'fr' ? 'fr-FR' : 'en-GB', opts); }
+    catch { return d; }
+  };
+
+  const imoBanner = isIMO ? `
+    <div style="background:#dc2626;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:14px;border-bottom:3px solid #991b1b">
+      <div style="font-size:30px">🚨</div>
+      <div>
+        <div style="font-weight:800;font-size:15px;letter-spacing:0.5px">${s.dangerous}</div>
+        <div style="font-size:13px;opacity:0.9">${s.dangerSub} ${imoClass ? '| Class: ' + imoClass : ''} ${imoPG ? '| ' + imoPG : ''}</div>
+      </div>
+    </div>` : '';
+
+  const clausesSection = filteredClauses.length > 0 ? `
+    <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:22px">
+      <div style="background:#0f2246;color:#fff;padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase">${s.clauses}</div>
+      <div style="padding:14px 16px">
+        <ol style="padding-left:18px;font-size:12px;color:#334155;line-height:2">
+          ${filteredClauses.map(c=>`<li>${c.text}</li>`).join('')}
+        </ol>
+      </div>
+    </div>` : '';
+
+  return `
+  <div style="background:#fff;color:#111;font-family:'Space Grotesk',Arial,sans-serif;max-width:820px;margin:0 auto;border:1px solid #dde3ea;border-radius:10px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
+    ${imoBanner}
+    <div style="background:linear-gradient(135deg,#0a1628 0%,#0f2246 100%);padding:28px 32px;display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        ${logo ? `<img src="${logo}" style="height:40px;margin-bottom:10px;display:block" alt="logo">` : ''}
+        <div style="color:rgba(255,255,255,0.6);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">${s.rfqSub}</div>
+        <div style="color:#fff;font-size:26px;font-weight:800;letter-spacing:-0.5px">${firma}</div>
+        <div style="color:#00c8ef;font-family:monospace;font-size:14px;margin-top:6px;font-weight:600">${rfqNo}</div>
+      </div>
+      <div style="text-align:right;color:rgba(255,255,255,0.7);font-size:12px;line-height:2.2">
+        <div style="color:#fff;font-weight:700;font-size:13px;margin-bottom:2px">📅 ${fmtDate(new Date().toISOString())}</div>
+        ${email?`<div>✉️ ${email}</div>`:''}
+        ${tel?`<div>📞 ${tel}</div>`:''}
+        ${web?`<div>🌐 ${web}</div>`:''}
+        ${adres?`<div style="max-width:200px;text-align:right;font-size:11px">📍 ${adres}</div>`:''}
+      </div>
+    </div>
+
+    <!-- ROUTE HERO -->
+    <div style="background:#f8fafc;border-bottom:2px solid #e2e8f0;padding:18px 32px;display:flex;align-items:center;justify-content:space-between">
+      <div style="text-align:center">
+        <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px">${s.polLbl}</div>
+        <div style="font-size:22px;font-weight:800;color:#0f2246">${pol}</div>
+        ${pickup ? `<div style="font-size:11px;color:#64748b;margin-top:4px;max-width:160px">📍 ${pickup}</div>` : ''}
+      </div>
+      <div style="flex:1;text-align:center;padding:0 20px">
+        <div style="display:flex;align-items:center;gap:8px;justify-content:center">
+          <div style="height:2px;flex:1;background:linear-gradient(90deg,#0f2246,#00c8ef)"></div>
+          <div style="font-size:24px">🚢</div>
+          <div style="height:2px;flex:1;background:linear-gradient(90deg,#00c8ef,#0f2246)"></div>
+        </div>
+        <div style="font-size:12px;color:#64748b;margin-top:6px;font-weight:600">${adet} × ${tip || '—'} | ${mode}</div>
+        <div style="font-size:12px;color:#0077aa;font-weight:700;margin-top:2px">${inco}</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px">${s.podLbl}</div>
+        <div style="font-size:22px;font-weight:800;color:#0f2246">${pod}</div>
+        ${delivery ? `<div style="font-size:11px;color:#64748b;margin-top:4px;max-width:160px">📍 ${delivery}</div>` : ''}
+      </div>
+    </div>
+
+    <div style="padding:24px 32px">
+      <!-- INTRO -->
+      <div style="background:#eff6ff;border-left:4px solid #0077aa;border-radius:0 6px 6px 0;padding:14px 18px;margin-bottom:22px;font-size:13px;color:#334155;line-height:1.9">
+        ${s.intro1}<br>
+        ${s.intro2}<br>
+        <strong>${s.deadline} <span style="color:#dc2626">${fmtDate(deadline)}</span></strong><br>
+        ${s.intro3}
+      </div>
+
+      <!-- 2-COL INFO -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px">
+        <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
+          <div style="background:#0f2246;color:#fff;padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase">${s.cargo}</div>
+          <table style="width:100%;font-size:13px;border-collapse:collapse">
+            ${pdfRow(s.product, kargo||'—')}
+            ${hs?pdfRow(s.hs,hs):''}
+            ${pdfRow(s.equip,`${adet} × ${tip||'—'}`)}
+            ${kg?pdfRow(s.weight,kg+' kg'):''}
+            ${cbm?pdfRow(s.vol,cbm+' CBM'):''}
+            ${pdfRow(s.dg, isIMO?`<span style="color:#dc2626;font-weight:700">⚠️ ${lang==='fr'?'OUI / YES':'EVET / YES'}${imoClass?' — '+imoClass:''}</span>`:(lang==='fr'?'Non':'Hayır / No'))}
+            ${isIMO&&imoPG?pdfRow(s.pg,imoPG):''}
+            ${special?pdfRow(s.spec,special):''}
+          </table>
+        </div>
+        <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
+          <div style="background:#0f2246;color:#fff;padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase">${s.ship}</div>
+          <table style="width:100%;font-size:13px;border-collapse:collapse">
+            ${pdfRow(s.polLbl,pol||'—')}
+            ${pickup?pdfRow(s.polAddr,pickup):''}
+            ${pdfRow(s.podLbl,pod||'—')}
+            ${delivery?pdfRow(s.podAddr,delivery):''}
+            ${pdfRow(s.etdLbl,fmtDate(etd))}
+            ${pdfRow(s.incoLbl,inco)}
+            ${pdfRow(s.modeLbl,mode)}
+          </table>
+        </div>
+      </div>
+
+      <!-- CHARGES TABLE -->
+      <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:22px">
+        <div style="background:#0f2246;color:#fff;padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase">${s.charges}</div>
+        <div style="padding:16px">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0">
+                <th style="text-align:left;padding:8px 12px;color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;width:5%">${s.chargeNo}</th>
+                <th style="text-align:left;padding:8px 12px;color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;width:40%">${s.chargeName}</th>
+                <th style="text-align:right;padding:8px 12px;color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;width:22%">${s.chargeRate}</th>
+                <th style="text-align:left;padding:8px 12px;color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;width:18%">${s.chargeUnit}</th>
+                <th style="text-align:left;padding:8px 12px;color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;width:15%">${s.chargeCurr}</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${items.map((item,i) => {
+                const isMand = item.toLowerCase().includes('transit') || item.toLowerCase().includes('armatör') || item.toLowerCase().includes('carrier') || item.toLowerCase().includes('armateur') || item.includes('*');
+                return `<tr style="border-bottom:1px solid #f1f5f9;background:${i%2===0?'#fff':'#fafcff'}">
+                  <td style="padding:10px 12px;color:#94a3b8;font-size:12px">${i+1}</td>
+                  <td style="padding:10px 12px;font-weight:${isMand?700:500};color:${isMand?'#0f2246':'#334155'}">
+                    ${item.replace(' *','')}
+                    ${isMand?`<span style="font-size:9px;background:#fee2e2;color:#dc2626;padding:1px 5px;border-radius:3px;margin-left:6px;font-weight:800">${s.mandatory}</span>`:''}
+                  </td>
+                  <td style="padding:10px 12px;text-align:right"><span style="display:inline-block;min-width:90px;border-bottom:1px solid #94a3b8">&nbsp;</span></td>
+                  <td style="padding:10px 12px;color:#64748b;font-size:12px">${s.perCont}</td>
+                  <td style="padding:10px 12px"><span style="display:inline-block;min-width:50px;border-bottom:1px solid #94a3b8">&nbsp;</span></td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      ${notes ? `
+      <div style="background:#fffbeb;border:1px solid #fde68a;border-left:4px solid #f59e0b;border-radius:6px;padding:14px 18px;margin-bottom:20px">
+        <div style="font-size:11px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">${s.notes}</div>
+        <div style="font-size:13px;color:#78350f;line-height:1.7">${notes}</div>
+      </div>` : ''}
+
+      ${clausesSection}
+
+      <!-- SIGNATURE + VALIDITY -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+        <div style="border:1px solid #e2e8f0;border-radius:8px;padding:16px">
+          <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:32px">${s.signBy}</div>
+          <div style="border-top:1px solid #94a3b8;padding-top:8px;font-size:11px;color:#94a3b8">${s.signLine}</div>
+        </div>
+        <div style="border:1px solid #e2e8f0;border-radius:8px;padding:16px">
+          <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px">${s.validity}</div>
+          <div style="font-size:22px;font-weight:800;color:#dc2626;margin-bottom:4px">${fmtDate(deadline)}</div>
+          <div style="font-size:11px;color:#64748b">${s.validNote}</div>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <div style="background:#f8fafc;border-top:1px solid #e2e8f0;border-radius:0 0 6px 6px;padding:14px;text-align:center;font-size:12px;color:#94a3b8;line-height:1.9">
+        ${s.footer} <strong style="color:#0f2246">${email||'—'}</strong>
+        ${tel?` | 📞 <strong style="color:#0f2246">${tel}</strong>`:''}
+        <br><span style="font-size:11px">RFQ No: <strong>${rfqNo}</strong> | ${firma} | ${new Date().toLocaleString(lang==='tr'?'tr-TR':lang==='fr'?'fr-FR':'en-GB')}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function generateRFQ() { /* kept for compatibility */ openRFQPrintWindow(); }
+function pdfRow(label, val) {
+  return `<tr style="border-bottom:1px solid #f1f5f9">
+    <td style="padding:8px 14px;color:#64748b;font-size:12px;width:45%">${label}</td>
+    <td style="padding:8px 14px;font-weight:600;color:#1e293b">${val}</td>
+  </tr>`;
+}
+
+// ===================== MANDATORY FIELDS =====================
+let customMandatoryFields = [];
+
+function saveMandatoryFields() {
+  const selected = ['mf_forwarder','mf_transship','mf_frequency','mf_etd','mf_payment','mf_includes','mf_excludes','mf_validity']
+    .filter(id => document.getElementById(id)?.checked)
+    .map(id => document.getElementById(id)?.nextElementSibling?.textContent || id);
+  const all = [...selected, ...customMandatoryFields];
+  setSetting('mandatoryFields', JSON.stringify(all));
+  saveDB();
+  updateMandatoryNote();
+  toast('Kaydedildi','Zorunlu alan ayarları güncellendi ✅','success');
+}
+
+function loadMandatoryFieldsUI() {
+  try {
+    const saved = JSON.parse(getSetting('mandatoryFields') || '[]');
+    ['mf_forwarder','mf_transship','mf_frequency','mf_etd','mf_payment','mf_includes','mf_excludes','mf_validity'].forEach(id => {
+      const el = document.getElementById(id);
+      const label = el?.nextElementSibling?.textContent || '';
+      if (el && saved.includes(label)) el.checked = true;
+    });
+  } catch {}
+}
+
+function addCustomMandatoryField() {
+  const val = document.getElementById('newMandatoryField').value.trim();
+  if (!val) return;
+  customMandatoryFields.push(val);
+  renderCustomMandatoryList();
+  document.getElementById('newMandatoryField').value = '';
+}
+
+function renderCustomMandatoryList() {
+  const el = document.getElementById('customMandatoryList');
+  if (!el) return;
+  el.innerHTML = customMandatoryFields.map((f,i) => `
+    <span class="tag" style="background:rgba(239,68,68,0.12);color:var(--red)">
+      ${f} <span onclick="customMandatoryFields.splice(${i},1);renderCustomMandatoryList()" style="cursor:pointer;margin-left:4px">×</span>
+    </span>`).join('');
+}
+
+function updateMandatoryNote() {
+  const el = document.getElementById('extraMandatoryNote');
+  if (!el) return;
+  try {
+    const extra = JSON.parse(getSetting('mandatoryFields') || '[]');
+    if (extra.length > 0) {
+      el.innerHTML = ' Ayrıca şunlar da zorunludur: <strong>' + extra.join(', ') + '</strong>.';
+    } else { el.innerHTML = ''; }
+  } catch { el.innerHTML = ''; }
+}
+
+function saveRFQ() {
+  const pol = document.getElementById('rfqPOL').value;
+  const pod = document.getElementById('rfqPOD').value;
+  const kargo = document.getElementById('rfqKargo').value;
+  if (!pol || !pod || !kargo) { toast('Eksik','POL, POD ve Kargo zorunlu','danger'); return; }
+  const rfqNo = generateRFQNo();
+  db.run(`INSERT INTO rfq (rfq_no,kargo,hs,tip,adet,kg,cbm,imo,imo_class,pol,pod,etd,deadline,incoterms,mode,items,forwarders,notlar) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, [
+    rfqNo,
+    kargo,
+    document.getElementById('rfqHS').value,
+    document.getElementById('rfqTip').value,
+    parseInt(document.getElementById('rfqAdet').value)||1,
+    parseFloat(document.getElementById('rfqKg').value)||null,
+    parseFloat(document.getElementById('rfqCBM').value)||null,
+    document.getElementById('rfqIMO').value,
+    document.getElementById('rfqIMOClass').value,
+    pol, pod,
+    document.getElementById('rfqETD').value||null,
+    document.getElementById('rfqDeadline').value||null,
+    document.getElementById('rfqInco').value,
+    document.getElementById('rfqMode').value,
+    JSON.stringify(getCheckedRFQItems()),
+    JSON.stringify(rfqForwarders),
+    document.getElementById('rfqNotes').value,
+  ]);
+  saveDB();
+  toast('RFQ Kaydedildi', rfqNo + ' başarıyla kaydedildi', 'success');
+}
+
+function copyRFQEmail() {
+  const pol = document.getElementById('rfqPOL').value || '—';
+  const pod = document.getElementById('rfqPOD').value || '—';
+  const kargo = document.getElementById('rfqKargo').value || '—';
+  const tip = document.getElementById('rfqTip').value || '—';
+  const adet = document.getElementById('rfqAdet').value || '1';
+  const etd = document.getElementById('rfqETD').value || '—';
+  const deadline = document.getElementById('rfqDeadline').value || '—';
+  const items = getCheckedRFQItems().map((i,n) => `  ${n+1}. ${i}: _______________`).join('\n');
+  const firma = getSetting('firma') || 'FreightPro Lojistik';
+  const email = getSetting('email') || '';
+  const text = `Konu: Navlun Fiyat Talebi / RFQ — ${pol} → ${pod}
+
+Sayın Yetkili,
+
+Aşağıda belirtilen sevkiyatımız için navlun fiyat teklifinizi talep etmekteyiz.
+Teklifinizi en geç ${deadline} tarihine kadar iletmenizi rica ederiz.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+KARGO BİLGİLERİ:
+  Kargo: ${kargo}
+  Konteyner: ${adet} x ${tip}
+  Yükleme Limanı (POL): ${pol}
+  Boşaltma Limanı (POD): ${pod}
+  Tahmini ETD: ${etd}
+  Incoterms: ${document.getElementById('rfqInco').value}
+
+LÜTFEN AYRI AYRI BELİRTİNİZ:
+${items}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Teklifinizi ${email} adresine iletebilirsiniz.
+
+Saygılarımızla,
+${firma}`;
+
+  navigator.clipboard.writeText(text).then(() => toast('Kopyalandı','E-posta metni panoya kopyalandı','success'));
+}
+
+function renderRFQList() {
+  const rows = query('SELECT * FROM rfq ORDER BY id DESC');
+  const tbody = document.getElementById('rfqTable');
+  if (!tbody) return;
+  tbody.innerHTML = rows.map(r => {
+    const fwds = JSON.parse(r.forwarders||'[]');
+    const isIMO = r.imo === 'Yes';
+    return `<tr>
+      <td class="mono" style="color:var(--accent)">${r.rfq_no}</td>
+      <td>${r.kargo||'—'}</td>
+      <td style="font-size:12px">${r.pol||'—'} → ${r.pod||'—'}</td>
+      <td><span class="tag">${r.tip||'—'}</span> x${r.adet||1}</td>
+      <td class="mono" style="font-size:11px">${r.etd||'—'}</td>
+      <td class="mono" style="font-size:11px;color:var(--gold)">${r.deadline||'—'}</td>
+      <td style="font-size:12px">${fwds.map(f=>f.name).join(', ')||'—'}</td>
+      <td>${isIMO ? '<span style="background:rgba(239,68,68,0.15);color:#ef4444;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:700">⚠️ IMO</span>' : '<span style="color:var(--text3);font-size:12px">—</span>'}</td>
+      <td class="mono" style="font-size:11px">${r.created_at?.split('T')[0]||'—'}</td>
+      <td>
+        <button class="btn btn-danger btn-sm" onclick="if(confirm('Silinsin mi?')){db.run('DELETE FROM rfq WHERE id=?',[${r.id}]);saveDB();renderRFQList();}">🗑</button>
+      </td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--text3)">Kayıt bulunamadı</td></tr>`;
+}
+
+// ===================== CLAUSES (SABİT ŞARTLAR) =====================
+let clausesData = [];
+
+function getSavedClauses() {
+  try { return JSON.parse(getSetting('savedClauses') || '[]'); }
+  catch { return []; }
+}
+
+function saveClauses() {
+  setSetting('savedClauses', JSON.stringify(clausesData));
+  saveDB();
+  toast('Kaydedildi', 'Sabit şartlar kaydedildi ✅', 'success');
+  renderRFQClausesPreview();
+}
+
+function addClause() {
+  const text = document.getElementById('newClauseText')?.value.trim();
+  const lang = document.getElementById('newClauseLang')?.value || 'all';
+  if (!text) { toast('Hata','Şart metni boş olamaz','danger'); return; }
+  clausesData.push({ id: Date.now(), text, lang });
+  document.getElementById('newClauseText').value = '';
+  renderClausesList();
+}
+
+function quickAddClause(text, lang) {
+  clausesData.push({ id: Date.now(), text, lang });
+  renderClausesList();
+  toast('Eklendi', 'Şart listeye eklendi', 'success');
+}
+
+function removeClause(id) {
+  clausesData = clausesData.filter(c => c.id !== id);
+  renderClausesList();
+}
+
+function renderClausesList() {
+  const el = document.getElementById('clausesList');
+  if (!el) return;
+  if (clausesData.length === 0) {
+    el.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:8px">Henüz şart eklenmedi</div>';
+    return;
+  }
+  const langLabel = { all: '🌐', tr: '🇹🇷', en: '🇬🇧', fr: '🇫🇷' };
+  el.innerHTML = clausesData.map((c,i) => `
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--navy2);border-radius:6px;border:1px solid var(--border)">
+      <span style="font-size:14px;margin-top:1px">${langLabel[c.lang]||'🌐'}</span>
+      <div style="flex:1;font-size:13px;color:var(--text2);line-height:1.5">${c.text}</div>
+      <span style="font-size:10px;background:rgba(0,212,255,0.1);color:var(--accent);padding:2px 6px;border-radius:3px;white-space:nowrap">${c.lang.toUpperCase()}</span>
+      <button onclick="removeClause(${c.id})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:0 2px;line-height:1">×</button>
+    </div>`).join('');
+}
+
+function loadClausesFromDB() {
+  clausesData = getSavedClauses();
+  renderClausesList();
+  renderRFQClausesPreview();
+}
+
+function renderRFQClausesPreview() {
+  const el = document.getElementById('rfqClausesPreview');
+  if (!el) return;
+  const clauses = getSavedClauses();
+  if (clauses.length === 0) {
+    el.innerHTML = '<span style="color:var(--text3);font-style:italic">Ayarlar → Sabit Şartlar bölümünden şart ekleyebilirsiniz.</span>';
+    return;
+  }
+  el.innerHTML = '<ol style="padding-left:16px;margin:0">' +
+    clauses.map(c => `<li style="margin-bottom:4px">${c.text} <span style="font-size:10px;color:var(--text3)">[${c.lang.toUpperCase()}]</span></li>`).join('') +
+    '</ol>';
+}
+
+// Load clause checks into rate modal when opened
+function loadRateClauseChecks() {
+  const el = document.getElementById('rateClausesChecks');
+  const grp = document.getElementById('rateClausesGroup');
+  if (!el || !grp) return;
+  const clauses = getSavedClauses();
+  if (clauses.length === 0) { grp.style.display = 'none'; return; }
+  grp.style.display = '';
+  el.innerHTML = clauses.map((c,i) => `
+    <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:12px">
+      <input type="checkbox" id="rClause_${i}" style="margin-top:2px;accent-color:var(--accent)">
+      <span style="color:var(--text2)">${c.text}</span>
+    </label>`).join('');
+}
+
+function verifyRateClauseChecks() {
+  const clauses = getSavedClauses();
+  if (clauses.length === 0) return true;
+  const allChecked = clauses.every((_,i) => document.getElementById('rClause_'+i)?.checked);
+  if (!allChecked) {
+    toast('Zorunlu Onay', 'Tüm sabit şartları onaylamanız zorunludur', 'danger');
+    return false;
+  }
+  return true;
+}
+
+// ===================== LIVE CONTAINER TRACKING =====================
+const CARRIER_URLS = {
+  'MSC':         'https://www.msc.com/en/tracking',
+  'Maersk':      'https://www.maersk.com/tracking',
+  'CMA CGM':     'https://www.cma-cgm.com/ebusiness/tracking',
+  'Hapag-Lloyd': 'https://www.hapag-lloyd.com/en/online-business/tracing/tracing-by-container.html',
+  'Evergreen':   'https://www.evergreen-line.com/static/jsp/container_tracking.jsp',
+  'COSCO':       'https://elines.coscoshipping.com/ebtracking/publicQuery',
+  'ONE':         'https://ecomm.one-line.com/one-ecom/manage-shipment/cargo-tracking',
+  'Yang Ming':   'https://www.yangming.com/e-service/Track_Trace/track_trace_cargo_tracking.aspx',
+};
+
+async function checkAllContainers() {
+  const ships = query('SELECT * FROM shipments WHERE ata IS NULL ORDER BY eta ASC');
+  if (ships.length === 0) { toast('Bilgi','Aktif konteyner bulunamadı','info'); return; }
+
+  const panel = document.getElementById('liveTrackingPanel');
+  const content = document.getElementById('liveTrackingContent');
+  const lastUpdate = document.getElementById('trackingLastUpdate');
+  if (!panel || !content) return;
+
+  panel.style.display = 'block';
+  content.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)">🛰️ Konteynerler sorgulanıyor...</div>';
+  panel.scrollIntoView({ behavior: 'smooth' });
+
+  // Simulate tracking data (real API integration requires backend)
+  await new Promise(r => setTimeout(r, 1200));
+
+  const today = new Date();
+  const diffDays = (a, b) => Math.round((new Date(a) - new Date(b)) / 86400000);
+
+  const rows = ships.map(s => {
+    const etaDiff = s.eta ? diffDays(s.eta, today) : null;
+    const atdDiff = s.atd ? diffDays(today, s.atd) : null;
+    const elapsedDays = atdDiff !== null ? atdDiff : (s.etd ? diffDays(today, s.etd) : null);
+    const trackingUrl = CARRIER_URLS[s.armator] || null;
+
+    // Status color and icon
+    let statusIcon = '🟡', statusColor = 'var(--gold)', statusText = s.durum || 'Bilinmiyor';
+    if (s.durum === 'Teslim Edildi') { statusIcon = '✅'; statusColor = 'var(--green)'; }
+    else if (s.durum === 'Transit') { statusIcon = '🚢'; statusColor = 'var(--accent)'; }
+    else if (s.durum === 'Varış Limanında') { statusIcon = '⚓'; statusColor = 'var(--green)'; }
+    else if (s.durum === 'Gecikmeli') { statusIcon = '🚨'; statusColor = 'var(--red)'; }
+    else if (s.durum === 'Yüklendi') { statusIcon = '📦'; statusColor = 'var(--accent)'; }
+
+    let etaLabel = '—', etaBadge = '';
+    if (etaDiff !== null) {
+      if (etaDiff > 0) {
+        etaLabel = etaDiff + ' gün kaldı';
+        etaBadge = etaDiff <= 5 ? `<span style="background:rgba(245,158,11,0.2);color:var(--gold);font-size:10px;padding:2px 6px;border-radius:3px;font-weight:700">⏰ YAKLAŞIYOR</span>` : '';
+      } else if (etaDiff === 0) {
+        etaLabel = 'BUGÜN';
+        etaBadge = `<span style="background:rgba(239,68,68,0.2);color:var(--red);font-size:10px;padding:2px 6px;border-radius:3px;font-weight:700">🔴 BUGÜN</span>`;
+      } else {
+        etaLabel = Math.abs(etaDiff) + ' gün geçti';
+        etaBadge = `<span style="background:rgba(239,68,68,0.2);color:var(--red);font-size:10px;padding:2px 6px;border-radius:3px;font-weight:700">🚨 GECİKMELİ</span>`;
+      }
+    }
+
+    return `
+    <div style="display:grid;grid-template-columns:auto 1fr auto auto auto auto auto;align-items:center;gap:16px;padding:14px 18px;border-bottom:1px solid var(--border)">
+      <div style="font-size:20px">${statusIcon}</div>
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:var(--accent)">${s.cont_no||'—'}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${s.musteri||'—'} • ${s.kargo||'—'}</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:2px">ROTA</div>
+        <div style="font-size:12px;font-weight:600">${s.pol||'—'} → ${s.pod||'—'}</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:2px">ARMATÖR</div>
+        <div style="font-size:12px;font-weight:600">${s.armator||'—'}</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:2px">DENİZDE</div>
+        <div style="font-size:14px;font-weight:800;color:var(--text)">${elapsedDays !== null ? elapsedDays + ' GÜN' : '—'}</div>
+        <div style="font-size:10px;color:var(--text3)">${s.atd ? 'ATD: ' + s.atd : (s.etd ? 'ETD: ' + s.etd : '')}</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:2px">ETA</div>
+        <div style="font-size:12px;font-weight:700;color:${etaDiff !== null && etaDiff < 0 ? 'var(--red)' : etaDiff !== null && etaDiff <= 5 ? 'var(--gold)' : 'var(--text)'}">${s.eta||'—'}</div>
+        <div style="font-size:11px;color:var(--text2)">${etaLabel}</div>
+        <div style="margin-top:3px">${etaBadge}</div>
+      </div>
+      <div>
+        ${trackingUrl ? `<a href="${trackingUrl}?container=${encodeURIComponent(s.cont_no||'')}" target="_blank" class="btn btn-ghost btn-sm" style="font-size:11px">🔗 ${s.armator}</a>` : ''}
+        <div style="font-size:10px;color:var(--text3);text-align:center;margin-top:4px">${statusText}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  content.innerHTML = `
+    <div style="background:var(--navy2);border-radius:8px;overflow:hidden;border:1px solid var(--border)">
+      <div style="padding:12px 18px;background:var(--navy3);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)">
+        <div style="font-size:12px;color:var(--text2)">${ships.length} aktif konteyner • Durum armatör sitelerine bağlantı linki ile gösterilmektedir</div>
+        <div style="font-size:11px;color:var(--text3)">Gerçek zamanlı takip için armatör linkine tıklayın →</div>
+      </div>
+      ${rows}
+    </div>
+    <div class="alert-box info" style="margin-top:12px">
+      <div><div class="alert-title">ℹ️ Canlı Takip Hakkında</div>
+      <div class="alert-text">Konteyner takip sistemi armatörlerin resmi B/L ve konteyner sorgulama sayfalarına yönlendirmektedir. MSC, Maersk, CMA CGM, Hapag-Lloyd, Evergreen ve diğer büyük armatörler desteklenmektedir. Hesaplanan günler ETD/ATD tarihlerine göre yapılmaktadır.</div></div>
+    </div>`;
+
+  if (lastUpdate) lastUpdate.textContent = 'Son güncelleme: ' + new Date().toLocaleTimeString('tr-TR');
+}
+
+// Load clause checks when rate modal opens
+document.addEventListener('click', e => {
+  if (e.target.closest('[onclick*="openModal(\'rateModal"]') || e.target.id === 'rateModal') {
+    setTimeout(loadRateClauseChecks, 100);
+  }
+});
+
+// ===================== PORT AUTOCOMPLETE =====================
+const PORTS = [
+  // Türkiye
+  {code:'TRMER',name:'Mersin',country:'🇹🇷',full:'Mersin Uluslararası Limanı'},
+  {code:'TRISK',name:'Istanbul (Haydarpaşa)',country:'🇹🇷',full:'Haydarpaşa Limanı'},
+  {code:'TRAMB',name:'Ambarlı',country:'🇹🇷',full:'Ambarlı Limanı, İstanbul'},
+  {code:'TRABS',name:'Kumport',country:'🇹🇷',full:'Kumport Limanı, İstanbul'},
+  {code:'TRIZM',name:'İzmir (Alsancak)',country:'🇹🇷',full:'Alsancak Limanı'},
+  {code:'TRGEM',name:'Gemlik',country:'🇹🇷',full:'Gemlik Uluslararası Limanı'},
+  {code:'TRISK2',name:'İskenderun',country:'🇹🇷',full:'İskenderun Limanı'},
+  {code:'TRTEK',name:'Tekirdağ',country:'🇹🇷',full:'Tekirdağ Limanı'},
+  {code:'TRRZE',name:'Trabzon',country:'🇹🇷',full:'Trabzon Limanı'},
+  {code:'TRDRC',name:'Derince',country:'🇹🇷',full:'Derince Limanı, Kocaeli'},
+  {code:'TRALI',name:'Antalya',country:'🇹🇷',full:'Antalya Limanı'},
+  // Çin
+  {code:'CNSHA',name:'Shanghai',country:'🇨🇳',full:'Port of Shanghai (Yangshan)'},
+  {code:'CNNGB',name:'Ningbo',country:'🇨🇳',full:'Ningbo-Zhoushan Port'},
+  {code:'CNSZX',name:'Shenzhen',country:'🇨🇳',full:'Yantian / Shekou / Chiwan'},
+  {code:'CNQIN',name:'Qingdao',country:'🇨🇳',full:'Qingdao Port'},
+  {code:'CNTXG',name:'Tianjin',country:'🇨🇳',full:'Tianjin Port (Xingang)'},
+  {code:'CNCAN',name:'Guangzhou (Nansha)',country:'🇨🇳',full:'Nansha Port, Guangzhou'},
+  {code:'CNXMN',name:'Xiamen',country:'🇨🇳',full:'Xiamen Port'},
+  {code:'CNDLC',name:'Dalian',country:'🇨🇳',full:'Dalian Port'},
+  {code:'CNHKG',name:'Hong Kong',country:'🇭🇰',full:'Kwai Tsing Container Terminals'},
+  // Asya
+  {code:'SGSIN',name:'Singapore',country:'🇸🇬',full:'Port of Singapore (PSA)'},
+  {code:'MYPKG',name:'Port Klang',country:'🇲🇾',full:'Port Klang, Malaysia'},
+  {code:'MYTPP',name:'Tanjung Pelepas',country:'🇲🇾',full:'Port of Tanjung Pelepas'},
+  {code:'JPYOK',name:'Yokohama',country:'🇯🇵',full:'Port of Yokohama'},
+  {code:'JPTYO',name:'Tokyo',country:'🇯🇵',full:'Port of Tokyo'},
+  {code:'KRPUS',name:'Busan',country:'🇰🇷',full:'Port of Busan'},
+  {code:'VNSGN',name:'Ho Chi Minh',country:'🇻🇳',full:'Cat Lai Port'},
+  {code:'THBKK',name:'Bangkok (Laem Chabang)',country:'🇹🇭',full:'Laem Chabang Port'},
+  {code:'IDJKT',name:'Jakarta (Tanjung Priok)',country:'🇮🇩',full:'Tanjung Priok Port'},
+  {code:'INBOM',name:'Mumbai (JNPT)',country:'🇮🇳',full:'Jawaharlal Nehru Port'},
+  {code:'INNSA',name:'Chennai',country:'🇮🇳',full:'Chennai Port'},
+  // Orta Doğu & Afrika
+  {code:'AEJEA',name:'Jebel Ali',country:'🇦🇪',full:'Jebel Ali Port, Dubai'},
+  {code:'SAJED',name:'Jeddah',country:'🇸🇦',full:'Jeddah Islamic Port'},
+  {code:'EGPSD',name:'Port Said',country:'🇪🇬',full:'Port Said Container Terminal'},
+  {code:'EGALY',name:'Alexandria',country:'🇪🇬',full:'Alexandria Port'},
+  {code:'DZALG',name:'Algiers',country:'🇩🇿',full:'Port of Algiers'},
+  {code:'MAPTM',name:'Tanger Med',country:'🇲🇦',full:'Tanger Med Port'},
+  {code:'CIDAB',name:'Abidjan',country:'🇨🇮',full:'Port of Abidjan'},
+  {code:'GHTEM',name:'Tema',country:'🇬🇭',full:'Tema Port'},
+  {code:'NGAPP',name:'Apapa (Lagos)',country:'🇳🇬',full:'Apapa Port'},
+  // Avrupa
+  {code:'DEHAM',name:'Hamburg',country:'🇩🇪',full:'Port of Hamburg'},
+  {code:'NLRTM',name:'Rotterdam',country:'🇳🇱',full:'Port of Rotterdam'},
+  {code:'BEANR',name:'Antwerp-Bruges',country:'🇧🇪',full:'Antwerp-Bruges Port'},
+  {code:'FRMRS',name:'Marseille (Fos)',country:'🇫🇷',full:'Fos-sur-Mer'},
+  {code:'ITGOA',name:'Genova',country:'🇮🇹',full:'Port of Genoa'},
+  {code:'ESLPA',name:'Las Palmas',country:'🇪🇸',full:'Las Palmas Port'},
+  {code:'ESVLC',name:'Valencia',country:'🇪🇸',full:'Port of Valencia'},
+  {code:'GBFXT',name:'Felixstowe',country:'🇬🇧',full:'Port of Felixstowe'},
+  {code:'GRPIR',name:'Piraeus',country:'🇬🇷',full:'Piraeus Container Terminal'},
+  // Amerika
+  {code:'USLAX',name:'Los Angeles',country:'🇺🇸',full:'Port of Los Angeles / Long Beach'},
+  {code:'USSEA',name:'Seattle / Tacoma',country:'🇺🇸',full:'Northwest Seaport Alliance'},
+  {code:'USNYC',name:'New York / Newark',country:'🇺🇸',full:'Port of New York and New Jersey'},
+  {code:'BRCPQ',name:'Santos',country:'🇧🇷',full:'Port of Santos'},
+];
+
+function initPortInput(inputId) {
+  const inp = document.getElementById(inputId);
+  if (!inp || inp.dataset.portInit) return;
+  inp.dataset.portInit = '1';
+
+  // Create suggestion container
+  const wrap = inp.parentElement;
+  if (!wrap.classList.contains('port-wrap')) {
+    wrap.classList.add('port-wrap');
+    wrap.style.position = 'relative';
+  }
+  const sug = document.createElement('div');
+  sug.className = 'port-suggestions';
+  sug.id = 'ps_' + inputId;
+  wrap.appendChild(sug);
+
+  inp.addEventListener('input', () => {
+    const q = inp.value.toLowerCase().trim();
+    if (q.length < 1) { sug.classList.remove('open'); return; }
+    const matches = PORTS.filter(p =>
+      p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q) ||
+      p.full.toLowerCase().includes(q) || p.country.includes(q)
+    ).slice(0,8);
+    if (matches.length === 0) { sug.classList.remove('open'); return; }
+    sug.innerHTML = matches.map(p =>
+      `<div class="port-option" onclick="selectPort('${inputId}','${p.name}, ${p.code.startsWith('TR')?'TR':p.code.slice(0,2)}')">
+        <span style="font-size:16px">${p.country}</span>
+        <span class="port-code">${p.code}</span>
+        <div><div style="font-weight:600;font-size:12px">${p.name}</div><div style="font-size:10px;color:var(--text3)">${p.full}</div></div>
+      </div>`
+    ).join('');
+    sug.classList.add('open');
+  });
+
+  inp.addEventListener('blur', () => setTimeout(() => sug.classList.remove('open'), 200));
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Escape') sug.classList.remove('open');
+  });
+}
+
+function selectPort(inputId, value) {
+  const inp = document.getElementById(inputId);
+  if (inp) inp.value = value;
+  const sug = document.getElementById('ps_' + inputId);
+  if (sug) sug.classList.remove('open');
+}
+
+// Init port inputs on page show
+function initPortInputsForPage() {
+  ['rfqPOL','rfqPOD','qPOL','qPOD','sPOL','sPOD','rPOL','rPOD'].forEach(id => initPortInput(id));
+}
+
+// ===================== COMBOBOX ENGINE =====================
+// Master carrier database — auto-updated from user entries
+const CARRIER_DB = [
+  // Big 5 Alliances
+  { name: 'MSC', full: 'Mediterranean Shipping Company', alliance: 'Gemini', country: '🇨🇭', hq: 'Cenevre, İsviçre', color: '#e8a000' },
+  { name: 'Maersk', full: 'A.P. Møller–Maersk', alliance: 'Gemini', country: '🇩🇰', hq: 'Kopenhag, Danimarka', color: '#42b0d5' },
+  { name: 'CMA CGM', full: 'Compagnie Maritime d\'Affrètement', alliance: 'Premier Alliance', country: '🇫🇷', hq: 'Marsilya, Fransa', color: '#00205b' },
+  { name: 'Hapag-Lloyd', full: 'Hapag-Lloyd AG', alliance: 'Premier Alliance', country: '🇩🇪', hq: 'Hamburg, Almanya', color: '#f47920' },
+  { name: 'ONE', full: 'Ocean Network Express', alliance: 'Premier Alliance', country: '🇯🇵', hq: 'Singapur', color: '#d50054' },
+  { name: 'Evergreen', full: 'Evergreen Marine Corporation', alliance: 'Premier Alliance', country: '🇹🇼', hq: 'Taoyuan, Tayvan', color: '#00843d' },
+  { name: 'COSCO', full: 'COSCO Shipping Lines', alliance: 'MSC World Alliance', country: '🇨🇳', hq: 'Shanghai, Çin', color: '#e60012' },
+  { name: 'Yang Ming', full: 'Yang Ming Marine Transport', alliance: 'MSC World Alliance', country: '🇹🇼', hq: 'Keelung, Tayvan', color: '#008080' },
+  { name: 'HMM', full: 'Hyundai Merchant Marine', alliance: 'MSC World Alliance', country: '🇰🇷', hq: 'Seoul, Güney Kore', color: '#003087' },
+  { name: 'ZIM', full: 'ZIM Integrated Shipping', alliance: 'Bağımsız', country: '🇮🇱', hq: 'Haifa, İsrail', color: '#c8102e' },
+  // Niche / Regional
+  { name: 'Arkas Line', full: 'Arkas Konteyner Taşımacılığı A.Ş.', alliance: 'Bölgesel', country: '🇹🇷', hq: 'İzmir, Türkiye', color: '#1a4b8c' },
+  { name: 'Turkon Line', full: 'Turkon Container Transportation', alliance: 'Bölgesel', country: '🇹🇷', hq: 'İstanbul, Türkiye', color: '#c8102e' },
+  { name: 'Unifeeder', full: 'Unifeeder A/S', alliance: 'Feeder', country: '🇩🇰', hq: 'Aarhus, Danimarka', color: '#00205b' },
+  { name: 'X-Press Feeders', full: 'X-Press Container Line', alliance: 'Feeder', country: '🇸🇬', hq: 'Singapur', color: '#ff6600' },
+  { name: 'Wan Hai', full: 'Wan Hai Lines', alliance: 'Bağımsız', country: '🇹🇼', hq: 'Taipei, Tayvan', color: '#003087' },
+  { name: 'PIL', full: 'Pacific International Lines', alliance: 'Bağımsız', country: '🇸🇬', hq: 'Singapur', color: '#005f9e' },
+  { name: 'SITC', full: 'SITC Container Lines', alliance: 'Bağımsız', country: '🇨🇳', hq: 'Hong Kong', color: '#e60012' },
+  { name: 'KMTC', full: 'Korea Marine Transport Corporation', alliance: 'Bağımsız', country: '🇰🇷', hq: 'Seoul, Güney Kore', color: '#003087' },
+  { name: 'Samudera', full: 'Samudera Shipping Line', alliance: 'Bağımsız', country: '🇸🇬', hq: 'Singapur', color: '#005f9e' },
+];
+
+// Extra carriers added by user at runtime
+let userCarriers = [];
+
+function getAllCarriers() {
+  const fromDB = (() => {
+    try {
+      const r1 = query('SELECT DISTINCT armator FROM rates WHERE armator != "" ORDER BY armator');
+      const r2 = query('SELECT DISTINCT armator FROM shipments WHERE armator != "" ORDER BY armator');
+      const names = [...new Set([...r1.map(r=>r.armator),...r2.map(r=>r.armator)])];
+      return names.filter(n => !CARRIER_DB.find(c=>c.name===n) && !userCarriers.find(c=>c.name===n))
+                  .map(n => ({ name: n, full: '', alliance: 'Özel', country: '🚢', hq: '' }));
+    } catch { return []; }
+  })();
+  return [...CARRIER_DB, ...userCarriers, ...fromDB];
+}
+
+let cbState = {}; // { fieldId: { value } }
+
+function buildCBOptions(fieldId, filter='') {
+  const opts = document.getElementById('cb_' + fieldId + '_opts');
+  if (!opts) return;
+  const carriers = getAllCarriers();
+  const q = filter.toLowerCase().trim();
+  const filtered = q ? carriers.filter(c =>
+    c.name.toLowerCase().includes(q) ||
+    c.full?.toLowerCase().includes(q) ||
+    c.hq?.toLowerCase().includes(q)
+  ) : carriers;
+
+  if (filtered.length === 0) {
+    // Offer to add as new carrier
+    opts.innerHTML = `<div class="cb-empty">Bulunamadı.<br>
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="addCustomCarrier('${filter.replace(/'/g,"\\'")}','${fieldId}')">
+        + "${filter}" olarak ekle
+      </button></div>`;
+    return;
+  }
+
+  // Group by alliance
+  const groups = {};
+  filtered.forEach(c => {
+    const g = c.alliance || 'Diğer';
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(c);
+  });
+
+  const currentVal = document.getElementById(fieldId)?.value || '';
+  let html = '';
+
+  const allianceOrder = ['Gemini', 'Premier Alliance', 'MSC World Alliance', 'Bağımsız', 'Bölgesel', 'Feeder', 'Özel', 'Diğer'];
+  const sortedGroups = Object.keys(groups).sort((a,b) => {
+    const ai = allianceOrder.indexOf(a); const bi = allianceOrder.indexOf(b);
+    return (ai===-1?99:ai) - (bi===-1?99:bi);
+  });
+
+  sortedGroups.forEach(g => {
+    if (!q) html += `<div class="cb-section-head">${g}</div>`;
+    groups[g].forEach(c => {
+      const isSelected = currentVal === c.name;
+      html += `<div class="cb-option${isSelected?' selected':''}" onclick="selectCB('${fieldId}','${c.name.replace(/'/g,"\\'")}')">
+        <div class="cb-option-logo-placeholder" style="background:${c.color||'var(--navy3)'}20;border-color:${c.color||'var(--border)'}40">
+          <span style="color:${c.color||'var(--text3)'};">${c.country||'🚢'}</span>
+        </div>
+        <div class="cb-option-info">
+          <div class="cb-option-name">${c.name}</div>
+          ${c.full||c.hq ? `<div class="cb-option-sub">${c.full||''} ${c.hq?'· '+c.hq:''}</div>` : ''}
+        </div>
+        ${!q&&c.alliance&&c.alliance!=='Diğer'&&c.alliance!=='Özel' ? `<span class="cb-option-alliance">${c.alliance}</span>` : ''}
+      </div>`;
+    });
+  });
+  opts.innerHTML = html;
+}
+
+function toggleCB(fieldId) {
+  const dd = document.getElementById('cb_' + fieldId + '_dd');
+  if (!dd) return;
+  const isOpen = dd.classList.contains('open');
+  // Close all others
+  document.querySelectorAll('.cb-dropdown.open').forEach(d => d.classList.remove('open'));
+  if (!isOpen) {
+    dd.classList.add('open');
+    buildCBOptions(fieldId);
+    const search = dd.querySelector('.cb-search');
+    if (search) { search.value = ''; search.focus(); }
+  }
+}
+
+function filterCB(fieldId, query) {
+  buildCBOptions(fieldId, query);
+}
+
+function selectCB(fieldId, value) {
+  const input = document.getElementById(fieldId);
+  if (input) input.value = value;
+  const dd = document.getElementById('cb_' + fieldId + '_dd');
+  if (dd) dd.classList.remove('open');
+  // Sync to DB - add to user carriers if not in master list
+  if (!CARRIER_DB.find(c=>c.name===value) && !userCarriers.find(c=>c.name===value)) {
+    userCarriers.push({ name: value, full: '', alliance: 'Özel', country: '🚢', hq: '' });
+  }
+}
+
+function addCustomCarrier(name, fieldId) {
+  if (!name.trim()) return;
+  if (!CARRIER_DB.find(c=>c.name===name) && !userCarriers.find(c=>c.name===name)) {
+    userCarriers.push({ name: name.trim(), full: '', alliance: 'Özel', country: '🚢', hq: '' });
+  }
+  selectCB(fieldId, name.trim());
+  toast('Eklendi', `"${name}" armatör listesine eklendi`, 'success');
+}
+
+// Close combobox when clicking outside
+document.addEventListener('click', e => {
+  if (!e.target.closest('.cb-wrap')) {
+    document.querySelectorAll('.cb-dropdown.open').forEach(d => d.classList.remove('open'));
+  }
+});
+
+// Init all comboboxes when modals open
+function initAllCBs() {
+  ['sArmator', 'rArmator', 'qArmator'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el.dataset.cbInit) {
+      el.dataset.cbInit = '1';
+    }
+  });
+}
+
+// Sync CB display when setting value programmatically
+function setCBValue(fieldId, value) {
+  const input = document.getElementById(fieldId);
+  if (input) input.value = value;
+}
+
+// Wire rate save to verify clauses first
+const _origSaveRate = saveRate;
+function saveRate() {
+  if (!verifyRateClauseChecks()) return;
+  _origSaveRate();
+}
+
+init();
+loadTheme();</script>
+</body>
+</html>
