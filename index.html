@@ -4,6 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FreightPro — Konteyner & Navlun Yönetim Sistemi</title>
+
+<!-- SEO & Social -->
+<meta name="description" content="FreightPro: Tek dosyada çalışan, ücretsiz ve açık kaynaklı konteyner & navlun yönetim sistemi. Sevkiyat takibi, RFQ, teklif yönetimi, alarm sistemi ve daha fazlası.">
+<meta name="keywords" content="freight management, konteyner takip, navlun, RFQ, lojistik yazılım, shipping, forwarder, armatör">
+<meta name="author" content="FreightPro">
+<meta name="robots" content="index, follow">
+
+<!-- Open Graph (LinkedIn, WhatsApp, Facebook) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="FreightPro — Konteyner & Navlun Yönetim Sistemi">
+<meta property="og:description" content="Tek HTML dosyasında çalışan, kurulum gerektirmeyen, ücretsiz ve açık kaynaklı lojistik yönetim sistemi. Sevkiyat takibi, RFQ, teklif oluşturma ve daha fazlası.">
+<meta property="og:image" content="https://raw.githubusercontent.com/freightpro/freightpro/main/preview.png">
+<meta property="og:url" content="https://freightpro.github.io">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FreightPro — Konteyner & Navlun Yönetim Sistemi">
+<meta name="twitter:description" content="Ücretsiz, kurulum gerektirmeyen lojistik yönetim sistemi. Tek HTML dosyası, tarayıcıda çalışır.">
+
+<!-- PWA / Favicon -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>">
+<meta name="theme-color" content="#0a0f1e">
+
+<!-- Version -->
+<!-- FreightPro v2.0 | github.com/freightpro | MIT License -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -97,11 +122,12 @@
   .sidebar {
     width: 220px; background: var(--navy2);
     border-right: 1px solid var(--border);
-    padding: 20px 0; flex-shrink: 0;
+    padding: 0; flex-shrink: 0;
     position: sticky; top: 60px; height: calc(100vh - 60px);
     overflow-y: auto;
+    display: flex; flex-direction: column;
   }
-  .nav-section { margin-bottom: 6px; }
+  .nav-section { margin-bottom: 6px; padding-top: 8px; }
   .nav-label {
     font-size: 10px; font-weight: 700; color: var(--text3);
     letter-spacing: 1.5px; text-transform: uppercase;
@@ -374,6 +400,32 @@
     .sidebar { display: none; }
     .stats-grid { grid-template-columns: 1fr 1fr; }
     .form-grid { grid-template-columns: 1fr; }
+    .topbar { padding: 0 12px; gap: 6px; }
+    .logo span:last-child { display: none; }
+    .main { padding: 0; }
+    .main > div { padding: 16px; }
+  }
+  @media (max-width: 1024px) {
+    .topbar-right a[href*="github"] span { display: none; }
+  }
+
+  /* Focus accessibility */
+  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* Print: show clean content only */
+  @media print {
+    .sidebar, .topbar, .btn, .form-actions, .filter-bar,
+    .page:not(.active), #rfqPreview > div:first-child,
+    .page-header .btn, .quick-actions { display: none !important; }
+    .main { padding: 0 !important; overflow: visible !important; }
+    body { background: #fff !important; color: #000 !important; }
+    .card, .modal, .quote-header { background: #fff !important; border-color: #ccc !important; box-shadow: none !important; }
+    #rfqPrintDoc { box-shadow: none !important; border: none !important; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    @page { margin: 10mm; size: A4 portrait; }
   }
 
   .tag {
@@ -571,8 +623,13 @@
   <div class="logo">
     ⚓ FreightPro
     <span>| Konteyner & Navlun Yönetim Sistemi</span>
+    <span style="font-size:10px;background:rgba(0,212,255,0.12);color:var(--accent);border:1px solid rgba(0,212,255,0.25);border-radius:4px;padding:2px 7px;margin-left:4px;letter-spacing:.3px">v2.0</span>
   </div>
   <div class="topbar-right">
+    <a href="https://github.com/freightpro/freightpro" target="_blank" rel="noopener noreferrer" title="GitHub'da görüntüle" style="display:flex;align-items:center;gap:5px;color:var(--text3);text-decoration:none;font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);transition:all 0.2s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
     <div id="alertBadge" class="badge-alert" style="display:none">0 Alarm</div>
     <button class="btn btn-ghost btn-sm" id="themeToggle" onclick="toggleTheme()" title="Gece/Gündüz Modu">🌙 Gece</button>
     <button class="btn btn-ghost btn-sm" onclick="exportDB()" title="Veriyi .db dosyası olarak indir">💾 Yedekle</button>
@@ -610,6 +667,25 @@
       <div class="nav-label">Sistem</div>
       <div class="nav-item" onclick="showPage('settings')"><span class="nav-icon">⚙️</span> Ayarlar</div>
     </div>
+    <!-- Sidebar Footer -->
+    <div style="padding:16px 20px;border-top:1px solid var(--border);margin-top:auto">
+      <div style="font-size:10px;color:var(--text3);margin-bottom:10px;line-height:1.6">
+        <span style="font-weight:700;color:var(--accent)">⚓ FreightPro</span> v2.0<br>
+        MIT Lisansı — Açık Kaynak<br>
+        Tarayıcıda çalışır, kurulum yok
+      </div>
+      <a href="https://github.com/freightpro/freightpro" target="_blank" rel="noopener noreferrer"
+         style="display:flex;align-items:center;gap:7px;color:var(--text3);text-decoration:none;font-size:12px;font-weight:600;padding:7px 10px;border-radius:6px;background:var(--navy3);border:1px solid var(--border);transition:all 0.2s"
+         onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+         onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub'da Gör / Yıldız Ver ⭐
+      </a>
+      <div style="margin-top:8px;display:flex;gap:6px">
+        <button onclick="exportDB()" style="flex:1;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);border-radius:6px;padding:6px;font-size:11px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:600;transition:all 0.2s" title="Veritabanını yedekle">💾 Yedekle</button>
+        <button onclick="document.getElementById('importFileInput').click()" style="flex:1;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);border-radius:6px;padding:6px;font-size:11px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:600;transition:all 0.2s" title="Yedek geri yükle">📂 Geri Yükle</button>
+      </div>
+    </div>
   </div>
 
   <!-- MAIN CONTENT -->
@@ -622,7 +698,9 @@
           <div class="page-title">Dashboard</div>
           <div class="page-subtitle">Genel operasyon özeti</div>
         </div>
-        <div style="display:flex;gap:10px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-ghost btn-sm" onclick="showShortcuts()" title="Klavye kısayolları">⌨️ Kısayollar</button>
+          <button class="btn btn-ghost btn-sm" onclick="showPage('shipments');setTimeout(()=>checkAllContainers(),200)">🛰️ Tümünü Sorgula</button>
           <button class="btn btn-primary" onclick="openModal('shipmentModal')">+ Konteynır Ekle</button>
         </div>
       </div>
@@ -1305,7 +1383,17 @@
     <!-- SETTINGS -->
     <div class="page" id="page-settings">
       <div class="page-header">
-        <div><div class="page-title">Ayarlar</div><div class="page-subtitle">Firma bilgileri, alarm eşikleri ve teklif kuralları</div></div>
+        <div>
+          <div class="page-title">Ayarlar</div>
+          <div class="page-subtitle">Firma bilgileri, alarm eşikleri ve teklif kuralları</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="font-size:11px;background:rgba(0,212,255,0.1);color:var(--accent);border:1px solid rgba(0,212,255,0.2);border-radius:6px;padding:4px 10px;font-family:'JetBrains Mono',monospace">v2.0</span>
+          <a href="https://github.com/freightpro/freightpro" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            GitHub ⭐
+          </a>
+        </div>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
@@ -1421,6 +1509,82 @@
         </div>
         <div class="form-actions">
           <button class="btn btn-primary" onclick="saveClauses()">💾 Şartları Kaydet</button>
+        </div>
+      </div>
+
+      <!-- ABOUT / README -->
+      <div class="card" style="margin-top:20px">
+        <div class="card-title">ℹ️ FreightPro Hakkında</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:24px">
+          ${[
+            {icon:'📦',title:'Sevkiyat Takibi',desc:'ETD/ATD/ETA/ATA takibi, otomatik gecikme alarmları, canlı armatör linkleri'},
+            {icon:'💰',title:'Fiyat & Teklif',desc:'Alış fiyatı kaydı, müşteri teklifi oluşturma, PDF çıktısı, durum takibi'},
+            {icon:'📨',title:'RFQ Sistemi',desc:'TR/EN/FR dil desteği, zorunlu şartlar, forwarder yönetimi, PDF/yazdır'},
+            {icon:'🔔',title:'Alarm Sistemi',desc:'ETD gecikmesi, ETA yaklaşması, 7 gün içi varış otomatik bildirimleri'},
+            {icon:'⚠️',title:'Hile Uyarıları',desc:'Forwarder ve armatör hileleri, korunma yolları, 25+ madde'},
+            {icon:'🎯',title:'Karar Destek',desc:'KPI özeti, maliyet optimizasyon önerileri, piyasa analizi'},
+            {icon:'✉️',title:'Müşteri Mesajları',desc:'Varış bildirimleri, İngilizce ve Fransızca hazır şablon'},
+            {icon:'💾',title:'Veri Güvenliği',desc:'Tüm veri tarayıcıda localStorage\'da saklanır. .db yedek alma/yükleme'},
+            {icon:'🌙',title:'Gece/Gündüz Modu',desc:'Göz dostu koyu tema ve açık tema desteği, tercih kaydedilir'},
+          ].map(f=>`<div style="background:var(--navy2);border-radius:8px;padding:14px;border:1px solid var(--border)">
+            <div style="font-size:22px;margin-bottom:8px">${f.icon}</div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:5px">${f.title}</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.6">${f.desc}</div>
+          </div>`).join('')}
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px">🛠️ Teknik Bilgiler</div>
+            ${[
+              ['Çalışma Ortamı','Tarayıcı (Chrome, Firefox, Safari, Edge)'],
+              ['Kurulum','Gerekmiyor — tek HTML dosyası'],
+              ['Veritabanı','SQLite (sql.js) — localStorage'],
+              ['Bağımlılıklar','sql.js 1.10.2, Chart.js 4.4.0'],
+              ['Fontlar','Space Grotesk, JetBrains Mono, Instrument Serif'],
+              ['Boyut','~200KB (tek dosya)'],
+              ['Lisans','MIT — Ücretsiz, açık kaynak'],
+            ].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px">
+              <span style="color:var(--text3)">${k}</span>
+              <span style="color:var(--text2);font-weight:500">${v}</span>
+            </div>`).join('')}
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px">📋 Hızlı Başlangıç</div>
+            <ol style="padding-left:16px;font-size:12px;color:var(--text2);line-height:2.2">
+              <li>Bu HTML dosyasını indirin</li>
+              <li>Herhangi bir tarayıcıda açın</li>
+              <li>Ayarlar → Firma bilgilerinizi girin</li>
+              <li>+ Konteynır Ekle ile ilk kaydı oluşturun</li>
+              <li>💾 Yedekle ile .db dosyanızı periyodik kaydedin</li>
+            </ol>
+            <div style="margin-top:14px">
+              <a href="https://github.com/freightpro/freightpro" target="_blank" rel="noopener noreferrer"
+                 style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--navy);padding:9px 18px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;transition:all 0.2s"
+                 onmouseover="this.style.background='#00b8d9'" onmouseout="this.style.background='var(--accent)'">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                GitHub'da Görüntüle & ⭐ Yıldız Ver
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:var(--navy2);border-radius:8px;padding:16px;border:1px solid var(--border)">
+          <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px">📝 Sürüm Notları</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.8">
+            <div style="margin-bottom:8px"><span style="background:rgba(0,212,255,0.12);color:var(--accent);padding:2px 7px;border-radius:4px;font-weight:700;font-size:11px;font-family:'JetBrains Mono',monospace">v2.0</span>
+              <span style="margin-left:10px;color:var(--text3)">— Mart 2026</span>
+            </div>
+            <ul style="padding-left:16px">
+              <li>Aranabilir armatör combobox (19 armatör, alliance grupları)</li>
+              <li>Liman autocomplete (50+ liman, LOCODE + bayrak)</li>
+              <li>Veri geri yükleme (.db import)</li>
+              <li>RFQ — TR/EN/FR çok dil PDF desteği</li>
+              <li>Sabit şartlar yönetimi (RFQ PDF + alış fiyatı zorunlu onay)</li>
+              <li>Canlı konteyner takip paneli (armatör link entegrasyonu)</li>
+              <li>Hata düzeltmeleri ve UI iyileştirmeleri</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -3997,7 +4161,73 @@ function saveRate() {
   _origSaveRate();
 }
 
+// ===================== KEYBOARD SHORTCUTS HELP =====================
+function showShortcuts() {
+  const existing = document.getElementById('shortcutsModal');
+  if (existing) { existing.remove(); return; }
+  const overlay = document.createElement('div');
+  overlay.id = 'shortcutsModal';
+  overlay.className = 'modal-overlay open';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:480px">
+      <button class="modal-close" onclick="document.getElementById('shortcutsModal').remove()">✕</button>
+      <div class="modal-title">⌨️ Klavye Kısayolları</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        ${[
+          ['1','Dashboard'],['2','Konteynırlar'],['3','Alarmlar'],
+          ['4','Alış Fiyatları'],['5','RFQ'],['6','Teklifler'],
+          ['N','Yeni Konteynır (modal)'],['Esc','Modalı kapat / Dropdown kapat'],
+        ].map(([k,l])=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--navy2);border-radius:6px;border:1px solid var(--border)">
+          <kbd style="background:var(--navy3);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--accent);min-width:30px;text-align:center">${k}</kbd>
+          <span style="font-size:13px;color:var(--text2)">${l}</span>
+        </div>`).join('')}
+      </div>
+      <div style="margin-top:16px;padding:12px;background:var(--navy2);border-radius:6px;border:1px solid var(--border);font-size:12px;color:var(--text3)">
+        💡 <strong style="color:var(--text2)">İpucu:</strong> Tablo satırlarına <strong style="color:var(--accent)">çift tıklayın</strong> → Detay paneli açılır.
+      </div>
+      <div class="form-actions" style="margin-top:14px">
+        <button class="btn btn-ghost" onclick="document.getElementById('shortcutsModal').remove()">Kapat</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
 init();
-loadTheme();</script>
+loadTheme();
+
+// First launch welcome
+if (!localStorage.getItem('fpWelcomed')) {
+  setTimeout(() => {
+    localStorage.setItem('fpWelcomed','1');
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = 'toast success';
+    t.style.cssText = 'min-width:340px;cursor:pointer';
+    t.innerHTML = `<div class="toast-title">⚓ FreightPro'ya Hoş Geldiniz!</div>
+      <div class="toast-msg">Kurulum gerektirmeyen, ücretsiz lojistik yönetim sistemi.<br>
+      <span style="color:var(--green);font-weight:600">Başlamak için</span>: Ayarlar → Firma bilgilerinizi girin.<br>
+      💡 <kbd style="background:#1e293b;border:1px solid #334155;border-radius:3px;padding:1px 5px;font-size:10px">💾 Yedekle</kbd> butonuyla verilerinizi periyodik kaydedin.</div>`;
+    t.onclick = () => t.remove();
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 12000);
+  }, 1200);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  if (e.key === '1') showPage('dashboard');
+  if (e.key === '2') showPage('shipments');
+  if (e.key === '3') showPage('alerts');
+  if (e.key === '4') showPage('pricelist');
+  if (e.key === '5') showPage('rfq');
+  if (e.key === '6') showPage('quotes');
+  if (e.key === 'n' && !e.ctrlKey && !e.metaKey) openModal('shipmentModal');
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+    document.querySelectorAll('.cb-dropdown.open').forEach(d => d.classList.remove('open'));
+  }
+});</script>
 </body>
 </html>
