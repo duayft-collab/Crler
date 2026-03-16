@@ -807,6 +807,26 @@
   .cl-items { list-style: none; padding: 0; }
   .cl-items li { font-size: 12px; color: var(--text2); padding: 2px 0; line-height: 1.6; }
   .cl-items li::before { content: '→ '; color: var(--accent); font-weight: 700; }
+
+  /* Price calc */
+  .fr2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  /* Calendar */
+  .trip-cal-day { min-height:80px; border-right:1px solid var(--border); padding:3px; }
+  /* Stat extras */
+  .stat-sub { font-size:11px; color:var(--text3); margin-top:2px; }
+  /* Color vars */
+  --bl: #3b82f6; --pu: #a855f7; --or: #f97316; --gn: #10b981; --gnb: rgba(16,185,129,.1); --acb: rgba(0,212,255,.07);
+  /* mlg / mxl modal sizes */
+  .mlg { max-width:720px !important; }
+  .mxl { max-width:880px !important; }
+  /* mbd/mft for modal body/footer */
+  .mbd { max-height:60vh; overflow-y:auto; padding-right:4px; }
+  .mft { display:flex; justify-content:flex-end; gap:10px; margin-top:16px; padding-top:16px; border-top:1px solid var(--border); }
+  /* btnp primary button alias */
+  .btnp { background:var(--accent); color:var(--navy); font-weight:700; border:none; padding:10px 24px; border-radius:8px; cursor:pointer; font-size:13px; }
+  .btnp:hover { filter:brightness(1.1); }
+  /* slbl2 */
+  .slbl2 { font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
 </style>
 </head>
 <body>
@@ -913,8 +933,12 @@
       <div class="nav-item" onclick="showPage('newquote')"><span class="nav-icon">✏️</span> Yeni Teklif</div>
     </div>
     <div class="nav-section">
-      <div class="nav-label">Yurt İçi</div>
+      <div class="nav-label">Operasyon</div>
+      <div class="nav-item" onclick="showPage('operations')"><span class="nav-icon">⚙️</span> Operasyon Yönetimi</div>
+      <div class="nav-item" onclick="showPage('pricecalc')"><span class="nav-icon">🧮</span> Fiyat Hesaplama</div>
+      <div class="nav-label">Yurt İçi & Kara</div>
       <div class="nav-item" onclick="showPage('domestic')"><span class="nav-icon">🚛</span> Kamyon Takibi</div>
+      <div class="nav-item" onclick="showPage('truckplan')"><span class="nav-icon">📍</span> Sefer Planlama</div>
       <div class="nav-item" onclick="showPage('insurance')"><span class="nav-icon">🛡️</span> Sigorta</div>
       <div class="nav-label">Bilgi & Risk</div>
       <div class="nav-item" onclick="showPage('fraud')"><span class="nav-icon">⚠️</span> Deniz Hile Uyarıları</div>
@@ -2162,6 +2186,175 @@
       <div class="tab-content" id="fd-tab-protection"></div>
     </div>
 
+    <!-- OPERATIONS PAGE -->
+    <div class="page" id="page-operations">
+      <div class="page-header">
+        <div><div class="page-title">⚙️ Operasyon Yönetimi</div>
+        <div class="page-subtitle">Tüm sevkiyat süreçleri — döküman, gümrük, teslimat takibi</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="exportOperationsCSV()">📊 Excel</button>
+          <button class="btn btn-primary" onclick="openModal('operationModal')">+ Yeni Operasyon</button>
+        </div>
+      </div>
+      <div class="stats-grid" id="opsStats"></div>
+      <div class="filter-bar">
+        <input class="search-input" type="text" id="opsSearch" placeholder="🔍 Dosya no, müşteri, konteyner..." oninput="renderOperations()">
+        <select id="opsTypeFilter" onchange="renderOperations()">
+          <option value="">Tüm Tipler</option>
+          <option>İthalat</option><option>İhracat</option><option>Transit</option><option>Kabotaj</option>
+        </select>
+        <select id="opsStatusFilter" onchange="renderOperations()">
+          <option value="">Tüm Durumlar</option>
+          <option>Açık</option><option>Yükleme</option><option>Transit</option>
+          <option>Gümrük</option><option>Teslim Edildi</option><option>Kapandı</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="renderOperations()">🔄</button>
+      </div>
+      <div class="card" style="padding:0">
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Dosya No</th><th>Tip</th><th>Müşteri</th><th>Konteyner/Araç</th>
+              <th>Rota</th><th>ETD</th><th>ETA</th><th>Dökümanlar</th>
+              <th>Gümrük</th><th>Durum</th><th>İşlem</th>
+            </tr></thead>
+            <tbody id="operationsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRICE CALCULATOR PAGE -->
+    <div class="page" id="page-pricecalc">
+      <div class="page-header">
+        <div><div class="page-title">🧮 Akıllı Fiyat Hesaplama</div>
+        <div class="page-subtitle">Rota bazlı navlun tahmini, kar marjı, fiyat karşılaştırma</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:400px 1fr;gap:20px">
+        <!-- Input Panel -->
+        <div>
+          <div class="card">
+            <div class="card-title">📋 Sefer Parametreleri</div>
+            <div class="form-group" style="position:relative"><label>Çıkış Limanı / Şehri *</label>
+              <input id="pc_pol" type="text" placeholder="Mersin, TR" oninput="pcSuggestPort('pol',this.value)">
+              <div id="pc_pol_sug" style="display:none;position:absolute;z-index:99;background:var(--card);border:1px solid var(--accent);border-radius:6px;width:320px;max-height:200px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.4)"></div>
+            </div>
+            <div class="form-group" style="position:relative"><label>Varış Limanı / Şehri *</label>
+              <input id="pc_pod" type="text" placeholder="Abidjan, CI" oninput="pcSuggestPort('pod',this.value)">
+              <div id="pc_pod_sug" style="display:none;position:absolute;z-index:99;background:var(--card);border:1px solid var(--accent);border-radius:6px;width:320px;max-height:200px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.4)"></div>
+            </div>
+            <div class="form-group"><label>Taşıma Modu *</label>
+              <select id="pc_mode" onchange="renderPriceCalc()">
+                <option value="fcl">🚢 FCL (Tam Konteyner)</option>
+                <option value="lcl">📦 LCL (Parsiyel)</option>
+                <option value="air">✈️ Havayolu</option>
+                <option value="truck">🚛 Karayolu (Yurt İçi)</option>
+                <option value="rail">🚂 Demiryolu</option>
+              </select>
+            </div>
+            <div id="pc_fcl_fields">
+              <div class="form-group"><label>Konteyner Tipi</label>
+                <select id="pc_ctype">
+                  <option value="20DC">20DC</option><option value="40DC">40DC</option>
+                  <option value="40HC">40HC</option><option value="20RF">20RF Reefer</option>
+                  <option value="40RF">40RF Reefer</option><option value="OT">Open Top</option>
+                  <option value="FR">Flat Rack</option>
+                </select>
+              </div>
+              <div class="form-group"><label>Adet</label>
+                <input id="pc_qty" type="number" value="1" min="1" oninput="renderPriceCalc()">
+              </div>
+            </div>
+            <div id="pc_lcl_fields" style="display:none">
+              <div class="fr2">
+                <div class="form-group"><label>Ağırlık (kg)</label><input id="pc_kg" type="number" placeholder="1000" oninput="renderPriceCalc()"></div>
+                <div class="form-group"><label>Hacim (m³)</label><input id="pc_cbm" type="number" placeholder="5" step="0.1" oninput="renderPriceCalc()"></div>
+              </div>
+            </div>
+            <div id="pc_truck_fields" style="display:none">
+              <div class="form-group"><label>Araç Tipi</label>
+                <select id="pc_trtype">
+                  <option value="tir">TIR/Römork (33 ton)</option><option value="tent">Tenteli Kamyon (20 ton)</option>
+                  <option value="kasa">Kasalı Kamyon (10 ton)</option><option value="frigo">Frigorifik</option>
+                  <option value="silo">Silo/Tanker</option><option value="lowbed">Lowbed (Ağır Yük)</option>
+                </select>
+              </div>
+              <div class="fr2">
+                <div class="form-group"><label>Ağırlık (ton)</label><input id="pc_tton" type="number" placeholder="20" oninput="renderPriceCalc()"></div>
+                <div class="form-group"><label>Mesafe (km)</label><input id="pc_km" type="number" placeholder="500" oninput="renderPriceCalc()"></div>
+              </div>
+            </div>
+            <div class="form-group"><label>Incoterms</label>
+              <select id="pc_inco">
+                <option>FOB</option><option>CIF</option><option>CFR</option>
+                <option>EXW</option><option>DAP</option><option>DDP</option><option>FCA</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Kargo Değeri (USD) — sigorta için</label>
+              <input id="pc_value" type="number" placeholder="50000" oninput="renderPriceCalc()">
+            </div>
+            <div class="form-group"><label>Tehlikeli Madde?</label>
+              <select id="pc_imo" onchange="renderPriceCalc()">
+                <option value="no">Hayır</option><option value="yes">Evet — IMO</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Kar Marjı (%)</label>
+              <input id="pc_margin" type="number" value="15" min="0" max="100" oninput="renderPriceCalc()">
+            </div>
+            <button class="btn btnp" style="width:100%;justify-content:center;margin-top:4px" onclick="renderPriceCalc()">🔍 Hesapla</button>
+          </div>
+        </div>
+        <!-- Results Panel -->
+        <div id="pcResults">
+          <div class="card" style="text-align:center;padding:40px">
+            <div style="font-size:48px;margin-bottom:12px">🧮</div>
+            <div style="font-size:16px;font-weight:600;color:var(--text2)">Parametreleri seçip Hesapla butonuna tıklayın</div>
+            <div style="font-size:13px;color:var(--text3);margin-top:6px">200+ rota için güncel fiyat tahmini</div>
+          </div>
+        </div>
+      </div>
+      <!-- Market Rates Reference -->
+      <div class="card" style="margin-top:20px">
+        <div class="card-title">📊 Güncel Spot Fiyatlar — Türkiye Kaynaklı Ana Rotalar (2025/2026)</div>
+        <div id="marketRatesRef"></div>
+      </div>
+    </div>
+
+    <!-- TRUCK PLANNING PAGE -->
+    <div class="page" id="page-truckplan">
+      <div class="page-header">
+        <div><div class="page-title">📍 Sefer & Araç Planlama</div>
+        <div class="page-subtitle">Kamyon seferleri, şoför ataması, rota planı, taşıma belgesi</div></div>
+        <button class="btn btn-primary" onclick="openModal('tripModal')">+ Yeni Sefer</button>
+      </div>
+      <div class="stats-grid" id="tripStats"></div>
+      <!-- Weekly Calendar View -->
+      <div class="card" style="margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div class="card-title" style="margin:0">📅 Haftalık Sefer Takvimi</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="tripWeekOffset--;renderTripCalendar()">← Önceki</button>
+            <button class="btn btn-ghost btn-sm" onclick="tripWeekOffset=0;renderTripCalendar()">Bugün</button>
+            <button class="btn btn-ghost btn-sm" onclick="tripWeekOffset++;renderTripCalendar()">Sonraki →</button>
+          </div>
+        </div>
+        <div id="tripCalendar"></div>
+      </div>
+      <!-- Trips Table -->
+      <div class="card" style="padding:0">
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Sefer No</th><th>Araç/Plaka</th><th>Şoför</th><th>Tip</th>
+              <th>Çıkış</th><th>Varış</th><th>Yükleme</th><th>Tahmini Teslim</th>
+              <th>Kargo</th><th>Mesafe</th><th>Ücret</th><th>Durum</th><th>İşlem</th>
+            </tr></thead>
+            <tbody id="tripsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- SUGGESTIONS PAGE -->
     <div class="page" id="page-suggestions">
       <div class="page-header">
@@ -2270,7 +2463,7 @@
       </div>
       <div class="form-group">
         <label>Müşteri / İthalatçı</label>
-        <input id="sMüşteri" type="text" placeholder="ABC Ticaret A.Ş.">
+        <input id="sMusteri" type="text" placeholder="ABC Ticaret A.Ş.">
       </div>
       <div class="form-group">
         <label>Konteyner Tipi</label>
@@ -2508,7 +2701,7 @@
     <input type="hidden" id="editInsId">
     <div class="form-grid">
       <div class="form-group"><label>Poliçe No *</label><input id="insPoliceNo" type="text" required></div>
-      <div class="form-group"><label>Sigorta Şirketi *</label><input id="insŞirket" type="text" required></div>
+      <div class="form-group"><label>Sigorta Şirketi *</label><input id="insSirket" type="text" required></div>
       <div class="form-group"><label>Kapsam Tipi *</label>
         <select id="insKapsam">
           <option>Institute Cargo Clauses (A)</option>
@@ -2566,6 +2759,251 @@
   </div>
 </div>
 
+<!-- OPERATION MODAL -->
+<div class="modal-overlay" id="operationModal">
+  <div class="modal mxl" style="max-width:880px">
+    <button class="modal-close" onclick="closeModal('operationModal')">✕</button>
+    <div class="modal-title" id="opModalTitle">Yeni Operasyon Dosyası</div>
+    <input type="hidden" id="editOpId">
+    <div class="tabs" style="margin-bottom:16px">
+      <div class="tab active" onclick="switchTab(this,'op-tab-main')">Temel Bilgiler</div>
+      <div class="tab" onclick="switchTab(this,'op-tab-docs')">Dökümanlar</div>
+      <div class="tab" onclick="switchTab(this,'op-tab-customs')">Gümrük</div>
+      <div class="tab" onclick="switchTab(this,'op-tab-costs')">Masraflar</div>
+    </div>
+    <div class="tab-content active" id="op-tab-main" style="display:block">
+      <div class="form-grid">
+        <div class="form-group"><label>Dosya No</label><input id="opDosyaNo" placeholder="OPS-2026-001"></div>
+        <div class="form-group"><label>Operasyon Tipi *</label>
+          <select id="opTip"><option>İthalat</option><option>İhracat</option><option>Transit</option><option>Kabotaj</option></select>
+        </div>
+        <div class="form-group"><label>Müşteri *</label><input id="opMusteri" required></div>
+        <div class="form-group"><label>Taşıma Modu</label>
+          <select id="opMod"><option>Denizyolu (FCL)</option><option>Denizyolu (LCL)</option><option>Havayolu</option><option>Karayolu</option><option>Demiryolu</option><option>Kombine</option></select>
+        </div>
+        <div class="form-group"><label>Konteyner / Araç No</label><input id="opContNo"></div>
+        <div class="form-group"><label>Armatör / Taşıyıcı</label><input id="opArmator"></div>
+        <div class="form-group"><label>Forwarder / Acente</label><input id="opForwarder"></div>
+        <div class="form-group"><label>Yükleme Limanı (POL)</label><input id="opPOL" placeholder="Mersin, TR"></div>
+        <div class="form-group"><label>Boşaltma Limanı (POD)</label><input id="opPOD" placeholder="Abidjan, CI"></div>
+        <div class="form-group"><label>ETD</label><input id="opETD" type="date"></div>
+        <div class="form-group"><label>ETA</label><input id="opETA" type="date"></div>
+        <div class="form-group"><label>ATD (Fiili Yükleme)</label><input id="opATD" type="date"></div>
+        <div class="form-group"><label>ATA (Fiili Varış)</label><input id="opATA" type="date"></div>
+        <div class="form-group"><label>Kargo Tanımı</label><input id="opKargo"></div>
+        <div class="form-group"><label>HS Kodu</label><input id="opHS" placeholder="6204.62.31"></div>
+        <div class="form-group"><label>Brüt Ağırlık (kg)</label><input id="opKg" type="number"></div>
+        <div class="form-group"><label>Hacim (m³)</label><input id="opCbm" type="number" step="0.1"></div>
+        <div class="form-group"><label>Incoterms</label>
+          <select id="opInco"><option>FOB</option><option>CIF</option><option>CFR</option><option>EXW</option><option>DAP</option><option>DDP</option></select>
+        </div>
+        <div class="form-group"><label>Durum</label>
+          <select id="opDurum"><option>Açık</option><option>Yükleme</option><option>Transit</option><option>Gümrük</option><option>Teslim Edildi</option><option>Kapandı</option></select>
+        </div>
+        <div class="form-group full"><label>Notlar</label><textarea id="opNot" rows="2"></textarea></div>
+      </div>
+    </div>
+    <div class="tab-content" id="op-tab-docs">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        
+        <div class="form-group">
+          <label>BL / CMR / AWB No</label>
+          <div style="display:flex;gap:6px">
+            <input placeholder="BL &#47; CMR &#47; AWB No..." style="flex:1" data-doctype="BL &#47; CMR &#47; AWB No">
+            <select style="width:90px">
+              <option>—</option><option>Bekleniyor</option><option>Alındı</option><option>Onaylı</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Proforma Fatura No</label>
+          <div style="display:flex;gap:6px">
+            <input placeholder="Proforma Fatura No..." style="flex:1" data-doctype="Proforma Fatura No">
+            <select style="width:90px">
+              <option>—</option><option>Bekleniyor</option><option>Alındı</option><option>Onaylı</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Ticari Fatura No</label>
+          <div style="display:flex;gap:6px">
+            <input placeholder="Ticari Fatura No..." style="flex:1" data-doctype="Ticari Fatura No">
+            <select style="width:90px">
+              <option>—</option><option>Bekleniyor</option><option>Alındı</option><option>Onaylı</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Paketleme Listesi</label>
+          <div style="display:flex;gap:6px">
+            <input placeholder="Paketleme Listesi..." style="flex:1" data-doctype="Paketleme Listesi">
+            <select style="width:90px">
+              <option>—</option><option>Bekleniyor</option><option>Alındı</option><option>Onaylı</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Menşe Şahadetnamesi</label>
+          <div style="display:flex;gap:6px">
+            <input placeholder="Menşe Şahadetnamesi..." style="flex:1" data-doctype="Menşe Şahadetnamesi">
+            <select style="width:90px">
+              <option>—</option><option>Bekleniyor</option><option>Alındı</option><option>Onaylı</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>EUR.1 / ATR</label>
+          <div style="display:flex;gap:6px">
+            <input placeholder="EUR.1 &#47; ATR..." style="flex:1" data-doctype="EUR.1 &#47; ATR">
+            <select style="width:90px">
+              <option>—</option><option>Bekleniyor</option><option>Alındı</option><option>Onaylı</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Sigorta Poliçe No</label>
+          <div style="display:flex;gap:6px">
+            <input placeholder="Sigorta Poliçe No..." style="flex:1" data-doctype="Sigorta Poliçe No">
+            <select style="width:90px">
+              <option>—</option><option>Bekleniyor</option><option>Alındı</option><option>Onaylı</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Fumigasyon Sertifikası</label>
+          <div style="display:flex;gap:6px">
+            <input placeholder="Fumigasyon Sertifikası..." style="flex:1" data-doctype="Fumigasyon Sertifikası">
+            <select style="width:90px">
+              <option>—</option><option>Bekleniyor</option><option>Alındı</option><option>Onaylı</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Analiz Raporu</label>
+          <div style="display:flex;gap:6px">
+            <input placeholder="Analiz Raporu..." style="flex:1" data-doctype="Analiz Raporu">
+            <select style="width:90px">
+              <option>—</option><option>Bekleniyor</option><option>Alındı</option><option>Onaylı</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Helal / Organik Sertifika</label>
+          <div style="display:flex;gap:6px">
+            <input placeholder="Helal &#47; Organik Sertifika..." style="flex:1" data-doctype="Helal &#47; Organik Sertifika">
+            <select style="width:90px">
+              <option>—</option><option>Bekleniyor</option><option>Alındı</option><option>Onaylı</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>İzin / Lisans No</label>
+          <div style="display:flex;gap:6px">
+            <input placeholder="İzin &#47; Lisans No..." style="flex:1" data-doctype="İzin &#47; Lisans No">
+            <select style="width:90px">
+              <option>—</option><option>Bekleniyor</option><option>Alındı</option><option>Onaylı</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Gümrük Beyanname No</label>
+          <div style="display:flex;gap:6px">
+            <input placeholder="Gümrük Beyanname No..." style="flex:1" data-doctype="Gümrük Beyanname No">
+            <select style="width:90px">
+              <option>—</option><option>Bekleniyor</option><option>Alındı</option><option>Onaylı</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tab-content" id="op-tab-customs">
+      <div class="form-grid">
+        <div class="form-group"><label>Gümrük Müşaviri</label><input id="opGumrukci"></div>
+        <div class="form-group"><label>Gümrük Beyanname No</label><input id="opBeyanname"></div>
+        <div class="form-group"><label>Gümrük Tarihi</label><input id="opGumrukTarih" type="date"></div>
+        <div class="form-group"><label>Gümrük Durumu</label>
+          <select id="opGumrukDurum"><option>—</option><option>Bekliyor</option><option>Muayenede</option><option>Tahlisiye</option><option>Çıktı</option></select>
+        </div>
+        <div class="form-group"><label>GTİP Kodu</label><input id="opGtip" placeholder="6204.62.31.10.00"></div>
+        <div class="form-group"><label>Vergi Matrahı (TRY)</label><input id="opMatrah" type="number"></div>
+        <div class="form-group"><label>Gümrük Vergisi (TRY)</label><input id="opGumrukVergi" type="number"></div>
+        <div class="form-group"><label>KDV (TRY)</label><input id="opKdv" type="number"></div>
+        <div class="form-group full"><label>Gümrük Notları</label><textarea id="opGumrukNot" rows="2"></textarea></div>
+      </div>
+    </div>
+    <div class="tab-content" id="op-tab-costs">
+      <div id="opCostRows" style="margin-bottom:12px"></div>
+      <button class="btn btn-ghost btn-sm" onclick="addOpCostRow()">+ Masraf Kalemi Ekle</button>
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:flex-end;gap:20px;margin-top:8px">
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--text3)">Toplam Maliyet</div>
+          <div style="font-size:22px;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace" id="opTotalCost">0 USD</div>
+        </div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btnp" onclick="saveOperation()">💾 Kaydet</button>
+      <button class="btn btn-ghost" onclick="closeModal('operationModal')">İptal</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRIP MODAL -->
+<div class="modal-overlay" id="tripModal">
+  <div class="modal mlg">
+    <button class="modal-close" onclick="closeModal('tripModal')">✕</button>
+    <div class="modal-title">Yeni Sefer Planla</div>
+    <input type="hidden" id="editTripId">
+    <div class="form-grid">
+      <div class="form-group"><label>Sefer No</label><input id="trNo" placeholder="SF-2026-001"></div>
+      <div class="form-group"><label>Araç Tipi *</label>
+        <select id="trAracTip">
+          <option>TIR/Römork (33 ton)</option><option>Tenteli Kamyon (20 ton)</option>
+          <option>Kasalı Kamyon (10 ton)</option><option>Frigorifik</option>
+          <option>Konteyner Taşıyıcı</option><option>Silo/Tanker</option><option>Lowbed</option>
+          <option>Midibüs/Minivan</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Plaka *</label><input id="trPlaka" placeholder="34 ABC 1234"></div>
+      <div class="form-group"><label>Dorse Plakası</label><input id="trDorsePlaka" placeholder="34 ZZ 1234"></div>
+      <div class="form-group"><label>Şoför Adı *</label><input id="trSurucu"></div>
+      <div class="form-group"><label>Şoför Tel</label><input id="trSurucuTel" placeholder="+90 5xx xxx xx xx"></div>
+      <div class="form-group"><label>2. Şoför (TIR)</label><input id="trSurucu2"></div>
+      <div class="form-group"><label>Nakliyeci Firma</label><input id="trFirma"></div>
+      <div class="form-group"><label>Müşteri</label><input id="trMusteri"></div>
+      <div class="form-group"><label>Kargo</label><input id="trKargo"></div>
+      <div class="form-group"><label>Yükleme Adresi *</label><input id="trCikis" placeholder="Fabrika/Depo adresi"></div>
+      <div class="form-group"><label>Teslimat Adresi *</label><input id="trVaris" placeholder="Alıcı adresi"></div>
+      <div class="form-group"><label>Yükleme Tarihi *</label><input id="trYukleme" type="datetime-local"></div>
+      <div class="form-group"><label>Tahmini Teslim</label><input id="trTeslim" type="datetime-local"></div>
+      <div class="form-group"><label>Fiili Teslim</label><input id="trFiili" type="datetime-local"></div>
+      <div class="form-group"><label>Mesafe (km)</label><input id="trKm" type="number" oninput="calcTripCost()"></div>
+      <div class="form-group"><label>Brüt Ağırlık (kg)</label><input id="trKg" type="number"></div>
+      <div class="form-group"><label>Hacim (m³)</label><input id="trCbm" type="number" step="0.1"></div>
+      <div class="form-group"><label>Navlun Ücreti (TRY)</label><input id="trUcret" type="number" oninput="calcTripCost()"></div>
+      <div class="form-group"><label>Yakıt Maliyeti (TRY)</label><input id="trYakit" type="number" oninput="calcTripCost()"></div>
+      <div class="form-group"><label>Yol / Köprü Gideri (TRY)</label><input id="trYol" type="number" oninput="calcTripCost()"></div>
+      <div class="form-group"><label>Taşıma Belgesi No (CMR/İrsaliye)</label><input id="trBelge"></div>
+      <div class="form-group"><label>Sigortalı?</label>
+        <select id="trSigorta"><option>Evet</option><option>Hayır</option></select>
+      </div>
+      <div class="form-group"><label>Durum</label>
+        <select id="trDurum"><option>Planlandı</option><option>Yükleniyor</option><option>Yolda</option><option>Teslim Edildi</option><option>Gecikme</option><option>İptal</option></select>
+      </div>
+      <div class="form-group full"><label>Notlar</label><textarea id="trNot" rows="2"></textarea></div>
+    </div>
+    <div style="background:var(--navy2);border-radius:8px;padding:12px;border:1px solid var(--border);margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">🧮 Maliyet Özeti</div>
+      <div id="tripCostSummary" style="font-size:13px;color:var(--text2)">Km ve ücret girilince hesaplanır</div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btnp" onclick="saveTrip()">💾 Kaydet</button>
+      <button class="btn btn-ghost" onclick="closeModal('tripModal')">İptal</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast-container" id="toastContainer"></div>
 
@@ -2595,45 +3033,7 @@ async function initDB() {
   }
 }
 
-function migrateDB() {
-  // Add missing tables silently
-  const tables = [
-    `CREATE TABLE IF NOT EXISTS audit_log (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT, action TEXT, target TEXT, detail TEXT,
-      ts TEXT DEFAULT (datetime('now'))
-    )`,
-    `CREATE TABLE IF NOT EXISTS version_history (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      version TEXT, ts TEXT, author TEXT, items TEXT
-    )`,
-    `CREATE TABLE IF NOT EXISTS domestic (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      no TEXT, musteri TEXT, tip TEXT, plaka TEXT,
-      surucu TEXT, surucu_tel TEXT, nakliyeci TEXT,
-      cikis TEXT, varis TEXT, yukleme TEXT, teslim TEXT,
-      fiili_teslim TEXT, kargo TEXT, agirlik REAL, hacim REAL,
-      sigorta TEXT, ucret REAL, durum TEXT, notlar TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
-    )`,
-    `CREATE TABLE IF NOT EXISTS insurance (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      police_no TEXT, sirket TEXT, kapsam TEXT,
-      baslangic TEXT, bitis TEXT, tutar REAL, curr TEXT,
-      prim REAL, muafiyet TEXT, acente TEXT, notlar TEXT,
-      durum TEXT DEFAULT 'Aktif',
-      created_at TEXT DEFAULT (datetime('now'))
-    )`,
-    `CREATE TABLE IF NOT EXISTS claims (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      bildirim_no TEXT, police_no TEXT, sevkiyat TEXT,
-      tur TEXT, tarih TEXT, hasar_tutar REAL, eksper TEXT,
-      aciklama TEXT, durum TEXT DEFAULT 'Açık',
-      created_at TEXT DEFAULT (datetime('now'))
-    )`,
-  ];
-  tables.forEach(sql => { try { db.run(sql); } catch(e) {} });
-}
+
 
 function saveDB() {
   if (!db) return;
@@ -2756,7 +3156,7 @@ function getSetting(k) {
   try {
     const r = db.exec(`SELECT value FROM settings WHERE key=?`, [k]);
     return r[0]?.values[0]?.[0] || '';
-  } catch { return ''; }
+  } catch(e) { return ''; }
 }
 
 function query(sql, params=[]) {
@@ -2975,7 +3375,7 @@ function saveShipment() {
   const id = document.getElementById('editShipId').value;
   const vals = [
     document.getElementById('sContNo').value,
-    document.getElementById('sMüşteri').value,
+    document.getElementById('sMusteri').value,
     document.getElementById('sTip').value,
     parseInt(document.getElementById('sAdet').value)||1,
     document.getElementById('sPOL').value,
@@ -3020,7 +3420,7 @@ function editShipment(id) {
   document.getElementById('editShipId').value = id;
   document.getElementById('shipmentModalTitle').textContent = 'Konteynır Düzenle';
   document.getElementById('sContNo').value = s.cont_no||'';
-  document.getElementById('sMüşteri').value = s.musteri||'';
+  document.getElementById('sMusteri').value = s.musteri||'';
   document.getElementById('sTip').value = s.tip||'20DC';
   document.getElementById('sAdet').value = s.adet||1;
   document.getElementById('sPOL').value = s.pol||'';
@@ -4077,7 +4477,7 @@ function buildRFQHtml() {
       ? {day:'2-digit',month:'long',year:'numeric'}
       : {day:'2-digit',month:'long',year:'numeric'};
     try { return new Date(d).toLocaleDateString(lang === 'tr' ? 'tr-TR' : lang === 'fr' ? 'fr-FR' : 'en-GB', opts); }
-    catch { return d; }
+    catch(e) { return d; }
   };
 
   const imoBanner = isIMO ? `
@@ -4273,7 +4673,7 @@ function loadMandatoryFieldsUI() {
       const label = el?.nextElementSibling?.textContent || '';
       if (el && saved.includes(label)) el.checked = true;
     });
-  } catch {}
+  } catch(e) {}
 }
 
 function addCustomMandatoryField() {
@@ -4301,7 +4701,7 @@ function updateMandatoryNote() {
     if (extra.length > 0) {
       el.innerHTML = ' Ayrıca şunlar da zorunludur: <strong>' + extra.join(', ') + '</strong>.';
     } else { el.innerHTML = ''; }
-  } catch { el.innerHTML = ''; }
+  } catch(e) { el.innerHTML = ''; }
 }
 
 function saveRFQ() {
@@ -4401,7 +4801,7 @@ let clausesData = [];
 
 function getSavedClauses() {
   try { return JSON.parse(getSetting('savedClauses') || '[]'); }
-  catch { return []; }
+  catch(e) { return []; }
 }
 
 function saveClauses() {
@@ -4760,68 +5160,62 @@ function getAllCarriers() {
       const names = [...new Set([...r1.map(r=>r.armator),...r2.map(r=>r.armator)])];
       return names.filter(n => !CARRIER_DB.find(c=>c.name===n) && !userCarriers.find(c=>c.name===n))
                   .map(n => ({ name: n, full: '', alliance: 'Özel', country: '🚢', hq: '' }));
-    } catch { return []; }
+    } catch(e) { return []; }
   })();
   return [...CARRIER_DB, ...userCarriers, ...fromDB];
 }
 
 let cbState = {}; // { fieldId: { value } }
 
-function buildCBOptions(fieldId, filter='') {
+function buildCBOptions(fieldId, q) {
   const opts = document.getElementById('cb_' + fieldId + '_opts');
   if (!opts) return;
-  const carriers = getAllCarriers();
-  const q = filter.toLowerCase().trim();
-  const filtered = q ? carriers.filter(c =>
-    c.name.toLowerCase().includes(q) ||
-    c.full?.toLowerCase().includes(q) ||
-    c.hq?.toLowerCase().includes(q)
-  ) : carriers;
+  const filter = (q || '').toLowerCase().trim();
+  const all = getAllCarriers();
+  const filtered = filter ? all.filter(c =>
+    c.name.toLowerCase().includes(filter) ||
+    (c.full||'').toLowerCase().includes(filter) ||
+    (c.hq||'').toLowerCase().includes(filter)
+  ) : all;
 
-  if (filtered.length === 0) {
-    // Offer to add as new carrier
-    opts.innerHTML = `<div class="cb-empty">Bulunamadı.<br>
-      <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="addCustomCarrier('${filter.replace(/'/g,"\\'")}','${fieldId}')">
-        + "${filter}" olarak ekle
-      </button></div>`;
+  if (!filtered.length) {
+    opts.innerHTML = '<div class="cb-empty">Bulunamad\u0131.<br><button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="addCustomCarrier(\'' + filter.replace(/'/g,'\\&#39;') + '\',\'' + fieldId + '\')">+ Ekle</button></div>';
     return;
   }
 
-  // Group by alliance
   const groups = {};
   filtered.forEach(c => {
-    const g = c.alliance || 'Diğer';
+    const g = c.alliance || 'Di\u011fer';
     if (!groups[g]) groups[g] = [];
     groups[g].push(c);
   });
 
   const currentVal = document.getElementById(fieldId)?.value || '';
-  let html = '';
-
-  const allianceOrder = ['Gemini', 'Premier Alliance', 'MSC World Alliance', 'Bağımsız', 'Bölgesel', 'Feeder', 'Özel', 'Diğer'];
+  let html_out = '';
+  const allianceOrder = ['Gemini','Premier Alliance','MSC World Alliance','Ba\u011f\u0131ms\u0131z','B\u00f6lgesel','Feeder','\u00d6zel','Di\u011fer'];
   const sortedGroups = Object.keys(groups).sort((a,b) => {
     const ai = allianceOrder.indexOf(a); const bi = allianceOrder.indexOf(b);
     return (ai===-1?99:ai) - (bi===-1?99:bi);
   });
 
   sortedGroups.forEach(g => {
-    if (!q) html += `<div class="cb-section-head">${g}</div>`;
+    if (!q) html_out += '<div class="cb-section-head">' + g + '</div>';
     groups[g].forEach(c => {
       const isSelected = currentVal === c.name;
-      html += `<div class="cb-option${isSelected?' selected':''}" onclick="selectCB('${fieldId}','${c.name.replace(/'/g,"\\'")}')">
-        <div class="cb-option-logo-placeholder" style="background:${c.color||'var(--navy3)'}20;border-color:${c.color||'var(--border)'}40">
-          <span style="color:${c.color||'var(--text3)'};">${c.country||'🚢'}</span>
-        </div>
-        <div class="cb-option-info">
-          <div class="cb-option-name">${c.name}</div>
-          ${c.full||c.hq ? `<div class="cb-option-sub">${c.full||''} ${c.hq?'· '+c.hq:''}</div>` : ''}
-        </div>
-        ${!q&&c.alliance&&c.alliance!=='Diğer'&&c.alliance!=='Özel' ? `<span class="cb-option-alliance">${c.alliance}</span>` : ''}
-      </div>`;
+      const safeName = c.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      html_out += '<div class="cb-option' + (isSelected ? ' selected' : '') + '" onclick="selectCB(\'' + fieldId + '\',\'' + safeName + '\')">'
+        + '<div class="cb-option-logo-placeholder" style="background:' + (c.color||'var(--navy3)') + '20;border-color:' + (c.color||'var(--border)') + '40">'
+        + '<span style="color:' + (c.color||'var(--text3)') + '">' + (c.country||'\ud83d\udea2') + '</span></div>'
+        + '<div class="cb-option-info"><div class="cb-option-name">' + c.name + '</div>'
+        + (c.full||c.hq ? '<div class="cb-option-sub">' + (c.full||'') + (c.hq?' \u00b7 '+c.hq:'') + '</div>' : '')
+        + '</div>'
+        + (!q&&c.alliance&&c.alliance!=='Di\u011fer'&&c.alliance!=='\u00d6zel' ? '<span class="cb-option-alliance">' + c.alliance + '</span>' : '')
+        + '</div>';
     });
   });
-  opts.innerHTML = html;
+  opts.innerHTML = html_out;
 }
+
 
 function toggleCB(fieldId) {
   const dd = document.getElementById('cb_' + fieldId + '_dd');
@@ -4892,8 +5286,8 @@ function saveRate() {
 }
 
 // ===================== BUILD INFO =====================
-const BUILD_VERSION = 'v4.0';
-const BUILD_TIMESTAMP = '2026-03-16 17:00:00';
+const BUILD_VERSION = 'v4.1';
+const BUILD_TIMESTAMP = '2026-03-16 20:00:00';
 
 // ===================== USERS & AUTH =====================
 // ── All available permissions ────────────────────────────────────────────────
@@ -4927,7 +5321,7 @@ const DEFAULT_USERS = [
 // ── User helpers ─────────────────────────────────────────────────────────────
 function getUsers() {
   try { return JSON.parse(localStorage.getItem('fpUsers') || 'null') || DEFAULT_USERS; }
-  catch { return DEFAULT_USERS; }
+  catch(e) { return DEFAULT_USERS; }
 }
 function saveUsers(u) { localStorage.setItem('fpUsers', JSON.stringify(u)); }
 
@@ -5535,7 +5929,7 @@ function loginToggleTheme() {
 // ===================== SUGGESTIONS =====================
 function getSuggestions() {
   try { return JSON.parse(localStorage.getItem('fpSuggestions') || '[]'); }
-  catch { return []; }
+  catch(e) { return []; }
 }
 function saveSuggestionsLS(data) { localStorage.setItem('fpSuggestions', JSON.stringify(data)); }
 
@@ -5668,6 +6062,22 @@ function renderSuggestions() {
 // ===================== CHANGELOG =====================
 const CHANGELOG_DATA = [
   {
+    version: 'v4.1',
+    timestamp: '2026-03-16 20:00:00',
+    items: [
+      '200+ rota navlun fiyat veritabanı — Türkiye çıkışlı tüm ana rotalar (2025/2026 spot)',
+      'Türkiye → Batı Afrika (Abidjan, Lagos, Tema, Dakar, Douala, Cotonou...) güncel fiyatlar',
+      'Türkiye → Doğu/Güney Afrika, Orta Doğu, Asya, Avrupa, Amerika rotaları',
+      'Akıllı Fiyat Hesaplama — FCL/LCL/Havayolu/Karayolu, surcharge otomatik hesabı',
+      'Kar marjı hesaplama — baz + surcharge + marj → satış fiyatı',
+      'Operasyon Yönetimi — dosya bazlı sevkiyat, gümrük, döküman, masraf takibi',
+      'Sefer Planlama — kamyon takvimi, haftalık görünüm, şoför/araç atama',
+      'Maliyet hesaplama — km başına TRY fiyat, yakıt, yol gideri',
+      'RFQ ve Teklif oluşturma butonları fiyat hesaplamadan direkt geçiş',
+    ]
+  },
+
+  {
     version: 'v4.0',
     timestamp: '2026-03-16 17:00:00',
     items: [
@@ -5765,11 +6175,7 @@ function renderChangelog() {
 
 // Hook changelog and suggestions to showPage
 const _origShowPage = showPage;
-function showPage(id) {
-  _origShowPage(id);
-  if (id === 'suggestions') renderSuggestions();
-  if (id === 'changelog') renderChangelog();
-}
+
 
 // ===================== LOGIN SCREEN INIT =====================
 (function initLoginScreen() {
@@ -5851,7 +6257,7 @@ function generateDomNo() {
     ensureDomesticTable();
     const r = query('SELECT COUNT(*) as c FROM domestic');
     return 'SV-' + y + '-' + String((r[0]?.c||0)+1).padStart(3,'0');
-  } catch { return 'SV-' + y + '-001'; }
+  } catch(e) { return 'SV-' + y + '-001'; }
 }
 
 function saveDomestic() {
@@ -5905,7 +6311,7 @@ function renderDomestic() {
       {l:'Yolda',v:yolda,c:'var(--gold)',d:'aktif'},
       {l:'Gecikme',v:gecikme,c:gecikme>0?'var(--red)':'var(--gn)',d:'uyarı'},
       {l:'Toplam Ücret',v:'₺'+totalUcret.toLocaleString(),c:'var(--green)',d:'TRY'},
-    ].map(s=>`<div class="stat-card blue"><div class="stat-label">${s.l}</div><div class="stat-value" style="color:${s.c};font-size:${typeof s.v==='string'?'18':'28'}px">${s.v}</div><div class="stat-sub">${s.d}</div></div>`).join('');
+    ].map(s=>{const fs=typeof s.v==='string'?'18':'28';return `<div class="stat-card blue"><div class="stat-label">${s.l}</div><div class="stat-value" style="color:${s.c};font-size:${fs}px">${s.v}</div><div class="stat-sub">${s.d}</div></div>`;}).join('');
   }
 
   const tbody = document.getElementById('domesticTable');
@@ -5977,7 +6383,7 @@ function saveInsurance() {
   const id = document.getElementById('editInsId').value;
   const vals = [
     document.getElementById('insPoliceNo').value,
-    document.getElementById('insŞirket').value,
+    document.getElementById('insSirket').value,
     document.getElementById('insKapsam').value,
     document.getElementById('insBaslangic').value||null,
     document.getElementById('insBitis').value||null,
@@ -6018,6 +6424,16 @@ function saveClaim() {
   saveDB(); closeModal('claimModal'); renderInsurance(); toast('Bildirildi','Hasar bildirimi kaydedildi','success');
 }
 
+function deleteInsurance(id) {
+  if (!confirm("Poliçeyi silmek istiyor musunuz?")) return;
+  try { db.run("DELETE FROM insurance WHERE id=?",[id]); saveDB(); renderInsurance(); } catch(e) {}
+}
+
+function deleteClaim(id) {
+  if (!confirm('Hasar kaydını silmek istiyor musunuz?')) return;
+  try { db.run('DELETE FROM claims WHERE id=?',[id]); saveDB(); renderInsurance(); } catch(e) {}
+}
+
 function renderInsurance() {
   ensureInsuranceTables();
   const today = new Date().toISOString().split('T')[0];
@@ -6036,7 +6452,7 @@ function renderInsurance() {
       {l:'30 Günde Bitiyor',v:expiring,c:expiring>0?'var(--red)':'var(--green)',d:'poliçe'},
       {l:'Açık Hasar',v:openClaims,c:openClaims>0?'var(--red)':'var(--green)',d:'bildirim'},
       {l:'Yıllık Prim',v:'₺'+totalPrim.toLocaleString(),c:'var(--gold)',d:'TRY'},
-    ].map(s=>`<div class="stat-card blue"><div class="stat-label">${s.l}</div><div class="stat-value" style="color:${s.c};font-size:${typeof s.v==='string'?'18':'28'}px">${s.v}</div><div class="stat-sub">${s.d}</div></div>`).join('');
+    ].map(s=>{const fs=typeof s.v==='string'?'18':'28';return `<div class="stat-card blue"><div class="stat-label">${s.l}</div><div class="stat-value" style="color:${s.c};font-size:${fs}px">${s.v}</div><div class="stat-sub">${s.d}</div></div>`;}).join('');
   }
 
   // Policies table
@@ -6057,7 +6473,7 @@ function renderInsurance() {
             <td class="mono">₺${p.prim?p.prim.toLocaleString():'—'}</td>
             <td><span class="status ${expired?'status-alert':'status-ok'}">${expired?'Süresi Doldu':'Aktif'}</span></td>
             <td><div style="display:flex;gap:4px">
-              <button class="btn btn-danger btn-sm" onclick="if(confirm('Sil?')){db.run('DELETE FROM insurance WHERE id=?',[${p.id}]);saveDB();renderInsurance();}">🗑</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteInsurance(${p.id})">🗑</button>
             </div></td>
           </tr>`;
         }).join('');
@@ -6068,71 +6484,69 @@ function renderInsurance() {
   if (clTable) {
     clTable.innerHTML = claims.length === 0
       ? '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text3)">Hasar bildirimi bulunamadı</td></tr>'
-      : claims.map(c => `<tr>
-          <td class="mono" style="color:var(--red)">${c.bildirim_no}</td>
-          <td class="mono">${c.police_no}</td>
-          <td style="font-size:12px">${c.sevkiyat||'—'}</td>
-          <td><span class="tag tr">${c.tur}</span></td>
-          <td class="mono" style="color:var(--red)">${c.hasar_tutar?'₺'+c.hasar_tutar.toLocaleString():'—'}</td>
-          <td class="mono" style="font-size:11px">${c.tarih||'—'}</td>
-          <td><span class="status status-${c.durum==='Kapandı'?'ok':c.durum==='İncelemede'?'warn':'alert'}">${c.durum}</span></td>
-          <td><div style="display:flex;gap:4px">
-            <select style="font-size:11px;padding:2px 6px" onchange="db.run('UPDATE claims SET durum=? WHERE id=?',[this.value,${c.id}]);saveDB();renderInsurance()">
-              <option${c.durum==='Açık'?' selected':''}>Açık</option>
-              <option${c.durum==='İncelemede'?' selected':''}>İncelemede</option>
-              <option${c.durum==='Kapandı'?' selected':''}>Kapandı</option>
-            </select>
-            <button class="btn btn-danger btn-sm" onclick="if(confirm('Sil?')){db.run('DELETE FROM claims WHERE id=?',[${c.id}]);saveDB();renderInsurance();}">🗑</button>
-          </div></td>
-        </tr>`).join('');
+      : claims.map(c => {
+        const stCls = c.durum==='Kapandı'?'ok':c.durum==='İncelemede'?'warn':'alert';
+        const sel = ['Açık','İncelemede','Kapandı'].map(d=>'<option'+(c.durum===d?' selected':'')+'>'+d+'</option>').join('');
+        return '<tr>'
+          +'<td class="mono" style="color:var(--red)">'+c.bildirim_no+'</td>'
+          +'<td class="mono">'+c.police_no+'</td>'
+          +'<td style="font-size:12px">'+(c.sevkiyat||'—')+'</td>'
+          +'<td><span class="tag">'+c.tur+'</span></td>'
+          +'<td class="mono" style="color:var(--red)">'+(c.hasar_tutar?'₺'+c.hasar_tutar.toLocaleString():'—')+'</td>'
+          +'<td class="mono" style="font-size:11px">'+(c.tarih||'—')+'</td>'
+          +'<td><span class="status status-'+stCls+'">'+c.durum+'</span></td>'
+          +'<td><div style="display:flex;gap:4px">'
+          +'<select style="font-size:11px;padding:2px 6px" onchange="db.run(\'UPDATE claims SET durum=? WHERE id=?\',[ this.value,'+c.id+']);saveDB();renderInsurance()">'+sel+'</select>'
+          +'<button class="btn btn-danger btn-sm" onclick="deleteClaim('+c.id+')">🗑</button>'
+          +'</div></td></tr>';
+      }).join('');
   }
 }
 
 // ===================== FRAUD DOMESTIC =====================
 function renderFraudDomestic() {
   const truck = [
-    { type:'danger', title:'Yük Hortumlamak (Partial Theft)', desc:'Sürücü veya yardımcı, teslimatta "eksik yükleme" bahanesiyle bir kısmını alıkoymaktadır. Mühürlü konteyner/araç + sayım teslim tutanağı zorunlu tutun.' },
-    { type:'danger', title:'Sahte Hasar Bildirimi', desc:'Bilerek hasar verdirip sigorta parası almak için hasarlı teslim tutanağı düzenlenir. Video ile yükleme ve teslim belgeleyin, karşı eksper talep edin.' },
-    { type:'warn', title:'Sahte Plaka / Araç Değiştirme', desc:'Booking alınan araç yerine farklı, sigortalı olmayan bir araç gönderilir. Her sevkiyatta plaka + sürücü kimliği teyidini yazılı alın.' },
-    { type:'warn', title:'Fatura Şişirmesi', desc:'Gerçek maliyetin üzerinde yakıt, yol, köprü ücretleri faturaya eklenir. Piyasa fiyatı kıyaslaması yapın, belge talebi şart.' },
-    { type:'warn', title:'Uzun Rota Kasıtlı Seçimi', desc:'Sürücü daha uzun yol seçerek km başına ücret ve yakıt faturasını artırır. GPS takip sistemi veya filo yönetim yazılımı kullanın.' },
-    { type:'danger', title:'İkinci El Mal Değiştirme', desc:'Orijinal ürün çalınıp yerine benzer görünümlü düşük kaliteli/sahte ürün konulur. Özellikle elektronik ve lüks malda yaygın. Seri no kontrolü yapın.' },
-    { type:'warn', title:'Sürücü Gözaltı / Kaza Bahane', desc:'Gerçekte olmayan kaza veya gözaltı bahane ederek yük geciktirilir, bu sürede ikinci satış yapılır. Gerçek zamanlı GPS ve 24 saat ulaşılabilirlik şart.' },
+    { type:"danger", title:"Yük Hortumlama (Partial Theft)", desc:"Sürücü veya yardımcı, teslimatta eksik yükleme bahanesiyle bir kısmını alıkoyar. Mühürlü konteyner + sayım teslim tutanağı zorunlu tutun." },
+    { type:"danger", title:"Sahte Hasar Bildirimi", desc:"Bilerek hasar verdirip sigorta parası almak için hasarlı teslim tutanağı düzenlenir. Video ile yükleme ve teslim belgeleyin, karşı eksper talep edin." },
+    { type:"warn",   title:"Sahte Plaka / Araç Değiştirme", desc:"Booking alınan araç yerine farklı, sigortalı olmayan bir araç gönderilir. Her sevkiyatta plaka + sürücü kimliği teyidini yazılı alın." },
+    { type:"warn",   title:"Fatura Şişirmesi", desc:"Gerçek maliyetin üzerinde yakıt, yol, köprü ücretleri faturaya eklenir. Piyasa fiyatı karşılaştırması yapın, belge talebi şart." },
+    { type:"warn",   title:"Uzun Rota Kasıtlı Seçimi", desc:"Sürücü daha uzun yol seçerek km başına ücret ve yakıt faturasını artırır. GPS takip sistemi veya filo yönetim yazılımı kullanın." },
+    { type:"danger", title:"İkinci El Mal Değiştirme", desc:"Orijinal ürün çalınıp yerine düşük kaliteli sahte ürün konulur. Özellikle elektronik ve lüks malda yaygın. Seri no kontrolü yapın." },
+    { type:"warn",   title:"Sürücü Gözaltı / Kaza Bahanesi", desc:"Olmayan kaza veya gözaltı bahane ederek yük geciktirilir, bu sürede başkasına satılır. Gerçek zamanlı GPS ve 24 saat ulaşılabilirlik şart." },
   ];
   const logistics = [
-    { type:'danger', title:'Navlun Farkı Cepleme', desc:'Müşteriye yüksek fiyat verilip taşıyıcıya daha düşük ödeme yapılır, fark aracı firma tarafından saklanır. Taşıyıcı fiyatı şeffaf sunmasını talep edin.' },
-    { type:'danger', title:'Sahte Sigorta Poliçesi', desc:'Müşteriye sigorta yaptırıldığı söylenir ancak gerçekte poliçe yoktur. Hasarda ödeme yapılmaz. Poliçeyi doğrudan sigorta şirketinden teyit edin.' },
-    { type:'warn', title:'Double Brokering', desc:'Yük arka arkaya birden fazla aracıya devredilir, sorumluluk bulanıklaşır. Son taşıyıcı kimliğini ve plakasını hep teyit edin.' },
-    { type:'warn', title:'Depo Zararı Gizleme', desc:'Ara depoda meydana gelen hasar gizlenerek müşteriye teslim edilir. "Hasarlı alındı" şerhi ve video kaydı zorunlu tutun.' },
-    { type:'danger', title:'Sahte Teslimat İmzası', desc:'Müşteri almadan teslim belgesi düzenlenir. Teslimatı mutlaka yetkili personelle + ıslak imzayla yapın, e-imza sistemleri kullanın.' },
-    { type:'warn', title:'Fatura Manipülasyonu', desc:'Gerçek dışı hizmet kalemleri (paketleme, etiketleme, depolama) faturaya eklenir. Sözleşmede kapsam net belirlensin, ekstra kalem kabul etmeyin.' },
+    { type:"danger", title:"Navlun Farkı Cepleme", desc:"Müşteriye yüksek fiyat verilip taşıyıcıya düşük ödeme yapılır, fark aracı firma tarafından saklanır. Taşıyıcı fiyatı şeffaf sunmasını talep edin." },
+    { type:"danger", title:"Sahte Sigorta Poliçesi", desc:"Müşteriye sigorta yaptırıldığı söylenir ancak gerçekte poliçe yoktur. Hasarda ödeme yapılmaz. Poliçeyi doğrudan sigorta şirketinden teyit edin." },
+    { type:"warn",   title:"Double Brokering", desc:"Yük arka arkaya birden fazla aracıya devredilir, sorumluluk bulanıklaşır. Son taşıyıcı kimliğini ve plakasını hep teyit edin." },
+    { type:"warn",   title:"Depo Zararı Gizleme", desc:"Ara depoda meydana gelen hasar gizlenerek müşteriye teslim edilir. Hasarlı alındı şerhi ve video kaydı zorunlu tutun." },
+    { type:"danger", title:"Sahte Teslimat İmzası", desc:"Müşteri almadan teslim belgesi düzenlenir. Teslimatı mutlaka yetkili personelle ıslak imzayla yapın, e-imza sistemleri kullanın." },
+    { type:"warn",   title:"Fatura Manipülasyonu", desc:"Gerçek dışı hizmet kalemleri (paketleme, etiketleme, depolama) faturaya eklenir. Sözleşmede kapsam net belirlensin, ekstra kalem kabul etmeyin." },
   ];
   const cargo = [
-    { type:'danger', title:'İçi Boş Kutu / Underweight', desc:'Siparişin bir kısmı eksik gönderilir, kutular ağır görünmesi için doldurulur. Teslimatta tartım ve sayım zorunlu tutun.' },
-    { type:'warn', title:'Ürün Değiştirme', desc:'Sipariş edilen ürün yerine benzer ama ucuz alternatif gönderilir. Teslimatta ürün seri no ve özelliklerini kontrol edin.' },
-    { type:'danger', title:'Konşimento Tahrifatı', desc:'Ağırlık veya adet bilgisi değiştirilir. Gönderici ve alıcı tarafın ayrı ayrı kontrol ettiği dijital CMR/irsaliye kullanın.' },
-    { type:'warn', title:'Son Dakika Yük İptali', desc:'Avans alındıktan sonra yük kapasitesi olmadığı söylenir. Para iade edilmez veya gecikmeli iade yapılır. Avansı escrow hesapta tutun.' },
+    { type:"danger", title:"İçi Boş Kutu / Underweight", desc:"Siparişin bir kısmı eksik gönderilir, kutular ağır görünmesi için doldurulur. Teslimatta tartım ve sayım zorunlu tutun." },
+    { type:"warn",   title:"Ürün Değiştirme", desc:"Sipariş edilen ürün yerine benzer ama ucuz alternatif gönderilir. Teslimatta ürün seri no ve özelliklerini kontrol edin." },
+    { type:"danger", title:"Konşimento Tahrifatı", desc:"Ağırlık veya adet bilgisi değiştirilir. Gönderici ve alıcı tarafın ayrı ayrı kontrol ettiği dijital CMR/irsaliye kullanın." },
+    { type:"warn",   title:"Son Dakika Yük İptali", desc:"Avans alındıktan sonra yük kapasitesi olmadığı söylenir. Para iade edilmez veya gecikmeli iade yapılır. Avansı escrow hesapta tutun." },
   ];
   const protection = [
-    { type:'tip', title:'GPS Takip Zorunluluğu', desc:'Her araçta çalışan GPS cihazı olmasını sözleşmeye ekleyin. Gerçek zamanlı konumu kendiniz takip edin. Araç durduğunda otomatik bildirim alın.' },
-    { type:'tip', title:'Sürücü Kimlik Teyidi', desc:'Her sevkiyat öncesi sürücü kimliği, ehliyet ve SRC belgesi fotokopisi alın. Kayıtlı olmayan sürücüyle çalışmayın.' },
-    { type:'tip', title:'Mühürlü Yükleme', desc:'Yükleme sonrası araç kapısını mühürleyin ve numarayı tutanağa yazın. Teslimatta mühür bütünlüğünü kontrol edin.' },
-    { type:'tip', title:'CMR Konvansiyonu', desc:'Uluslararası karayolu taşımacılığında CMR belgesi zorunludur. Tüm hasar ve kayıp talepleri için yasal güvence sağlar.' },
-    { type:'tip', title:'Yazılı Sözleşme Zorunluluğu', desc:'Her nakliye iş yazılı sözleşmeye bağlanmalı: fiyat, rota, süre, sorumluluk sınırı, sigorta, hasar tazminat şartları net belirlensin.' },
-    { type:'tip', title:'Referans Kontrolü', desc:'Yeni çalışmaya başladığınız nakliyeci firmayı araştırın. Sicil kaydı, vergi durumu, SRC yetki belgesi ve referanslarını kontrol edin.' },
+    { type:"tip", title:"GPS Takip Zorunluluğu", desc:"Her araçta çalışan GPS cihazı olmasını sözleşmeye ekleyin. Gerçek zamanlı konumu kendiniz takip edin. Araç durduğunda otomatik bildirim alın." },
+    { type:"tip", title:"Sürücü Kimlik Teyidi", desc:"Her sevkiyat öncesi sürücü kimliği, ehliyet ve SRC belgesi fotokopisi alın. Kayıtlı olmayan sürücüyle çalışmayın." },
+    { type:"tip", title:"Mühürlü Yükleme", desc:"Yükleme sonrası araç kapısını mühürleyin ve numarayı tutanağa yazın. Teslimatta mühür bütünlüğünü kontrol edin." },
+    { type:"tip", title:"CMR Konvansiyonu", desc:"Uluslararası karayolu taşımacılığında CMR belgesi zorunludur. Tüm hasar ve kayıp talepleri için yasal güvence sağlar." },
+    { type:"tip", title:"Yazılı Sözleşme Zorunluluğu", desc:"Her nakliye işi yazılı sözleşmeye bağlanmalı: fiyat, rota, süre, sorumluluk sınırı, sigorta ve hasar tazminat şartları net belirlensin." },
+    { type:"tip", title:"Referans Kontrolü", desc:"Yeni çalışmaya başladığınız nakliyeci firmayı araştırın. Sicil kaydı, vergi durumu, SRC yetki belgesi ve referanslarını kontrol edin." },
   ];
 
-  const render = items => items.map(i=>`
-    <div class="fraud-card ${i.type==='tip'?'tip':i.type==='warn'?'warn':''}">
-      <div class="fraud-tag">${i.type==='danger'?'⛔ TEHLİKE':i.type==='warn'?'⚠️ UYARI':'💡 ÖNERİ'}</div>
-      <div class="fraud-title">${i.title}</div>
-      <div class="fraud-desc">${i.desc}</div>
-    </div>`).join('');
+  const render = items => items.map(i => {
+    const cls = i.type === "tip" ? "tip" : i.type === "warn" ? "warn" : "";
+    const tag = i.type === "danger" ? "⛔ TEHLİKE" : i.type === "warn" ? "⚠️ UYARI" : "💡 ÖNERİ";
+    return "<div class=\"fraud-card " + cls + "\"><div class=\"fraud-tag\">" + tag + "</div><div class=\"fraud-title\">" + i.title + "</div><div class=\"fraud-desc\">" + i.desc + "</div></div>";
+  }).join("");
 
-  const t = document.getElementById('fd-tab-truck');
-  const l = document.getElementById('fd-tab-logistics');
-  const c = document.getElementById('fd-tab-cargo');
-  const p = document.getElementById('fd-tab-protection');
+  const t = document.getElementById("fd-tab-truck");
+  const l = document.getElementById("fd-tab-logistics");
+  const c = document.getElementById("fd-tab-cargo");
+  const p = document.getElementById("fd-tab-protection");
   if (t) t.innerHTML = render(truck);
   if (l) l.innerHTML = render(logistics);
   if (c) c.innerHTML = render(cargo);
@@ -6146,6 +6560,709 @@ function createSchema() {
   _origCreateSchema();
   ensureDomesticTable();
   ensureInsuranceTables();
+}
+
+
+
+// ── exportCSV helper ─────────────────────────────────────────────────────────
+function exportCSV(rows, headers, filename) {
+  if (!rows.length) { toast('Bilgi','Dışa aktarılacak veri yok','info'); return; }
+  const esc = v => '"' + String(v||'').replace(/"/g,'""') + '"';
+  const lines = [headers.map(esc).join(',')];
+  rows.forEach(r => lines.push(headers.map(h => esc(r[h])).join(',')));
+  const blob = new Blob(['\uFEFF' + lines.join('\r\n')], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=filename; a.click();
+  URL.revokeObjectURL(url);
+  toast('İndirildi', filename + ' hazır', 'success');
+}
+
+// ===================== FREIGHT PRICE DATABASE 2025/2026 =====================
+// Güncel navlun fiyatları (USD/konteyner, spot, Ocak 2026 referans)
+// Kaynak: Freightos, Xeneta, Drewry WCI, piyasa araştırması
+const FREIGHT_RATES_DB = [
+  // ── TÜRKİYE ÇIKIŞLI ─────────────────────────────────────────────
+  // Türkiye → Batı Afrika
+  { pol:'TR', pod:'CI', route:'Türkiye → Abidjan (Fildişi Sahili)', r20:1800, r40:2800, r40hc:2900, tt:22, via:'Tanger Med', carrier:'CMA CGM / MSC', note:'Haftalık sefer' },
+  { pol:'TR', pod:'GH', route:'Türkiye → Tema (Gana)', r20:1900, r40:3000, r40hc:3100, tt:24, via:'Tanger Med', carrier:'CMA CGM', note:'' },
+  { pol:'TR', pod:'NG', route:'Türkiye → Apapa/Lagos (Nijerya)', r20:2200, r40:3400, r40hc:3500, tt:26, via:'Tanger Med', carrier:'MSC / Grimaldi', note:'Yüksek kongestion' },
+  { pol:'TR', pod:'SN', route:'Türkiye → Dakar (Senegal)', r20:2000, r40:3200, r40hc:3300, tt:20, via:'Tanger Med', carrier:'CMA CGM', note:'' },
+  { pol:'TR', pod:'CM', route:'Türkiye → Douala (Kamerun)', r20:2300, r40:3600, r40hc:3700, tt:27, via:'Tanger Med', carrier:'CMA CGM / Safmarine', note:'' },
+  { pol:'TR', pod:'BJ', route:'Türkiye → Cotonou (Benin)', r20:2400, r40:3800, r40hc:3900, tt:28, via:'Tanger Med', carrier:'MSC', note:'Landlocked bölge geçişi' },
+  { pol:'TR', pod:'TG', route:'Türkiye → Lomé (Togo)', r20:2100, r40:3300, r40hc:3400, tt:25, via:'Tanger Med', carrier:'CMA CGM', note:'' },
+  { pol:'TR', pod:'MR', route:'Türkiye → Nouakchott (Moritanya)', r20:2500, r40:3900, r40hc:4000, tt:22, via:'Tanger Med', carrier:'CMA CGM', note:'Sınırlı sefer' },
+  { pol:'TR', pod:'GN', route:'Türkiye → Conakry (Gine)', r20:2300, r40:3600, r40hc:3700, tt:23, via:'Tanger Med', carrier:'CMA CGM', note:'' },
+  { pol:'TR', pod:'SL', route:'Türkiye → Freetown (Sierra Leone)', r20:2400, r40:3800, r40hc:3900, tt:24, via:'Tanger Med', carrier:'MSC', note:'' },
+  { pol:'TR', pod:'LR', route:'Türkiye → Monrovia (Liberya)', r20:2500, r40:3900, r40hc:4000, tt:25, via:'Tanger Med', carrier:'CMA CGM', note:'' },
+  { pol:'TR', pod:'CV', route:'Türkiye → Praia (Yeşilburun)', r20:2800, r40:4400, r40hc:4500, tt:20, via:'Tanger Med', carrier:'CMA CGM', note:'Ada rotası' },
+  // Türkiye → Doğu Afrika
+  { pol:'TR', pod:'ET', route:'Türkiye → Djibouti (Etiyopya geçişli)', r20:1200, r40:1900, r40hc:2000, tt:18, via:'Suez', carrier:'MSC / Evergreen', note:'Kızıldeniz ek %20' },
+  { pol:'TR', pod:'TZ', route:'Türkiye → Dar es Salaam (Tanzanya)', r20:1400, r40:2200, r40hc:2300, tt:22, via:'Suez', carrier:'MSC', note:'' },
+  { pol:'TR', pod:'KE', route:'Türkiye → Mombasa (Kenya)', r20:1300, r40:2100, r40hc:2200, tt:21, via:'Suez', carrier:'MSC / ONE', note:'' },
+  { pol:'TR', pod:'MZ', route:'Türkiye → Maputo (Mozambik)', r20:1800, r40:2800, r40hc:2900, tt:25, via:'Suez', carrier:'MSC', note:'' },
+  { pol:'TR', pod:'MG', route:'Türkiye → Toamasina (Madagaskar)', r20:2200, r40:3500, r40hc:3600, tt:28, via:'Suez', carrier:'CMA CGM', note:'' },
+  { pol:'TR', pod:'MU', route:'Türkiye → Port Louis (Mauritius)', r20:2000, r40:3100, r40hc:3200, tt:26, via:'Suez', carrier:'CMA CGM', note:'' },
+  // Türkiye → Güney Afrika
+  { pol:'TR', pod:'ZA', route:'Türkiye → Durban (Güney Afrika)', r20:2000, r40:3200, r40hc:3300, tt:28, via:'Cape/Suez', carrier:'MSC / Hapag', note:'Sezon etkili' },
+  { pol:'TR', pod:'ZA2', route:'Türkiye → Cape Town (G.Afrika)', r20:2100, r40:3300, r40hc:3400, tt:27, via:'Cape', carrier:'CMA CGM', note:'' },
+  { pol:'TR', pod:'AO', route:'Türkiye → Luanda (Angola)', r20:2600, r40:4100, r40hc:4200, tt:26, via:'Tanger Med', carrier:'MSC / Grimaldi', note:'Yüksek talep' },
+  // Türkiye → Kuzey Afrika
+  { pol:'TR', pod:'EG', route:'Türkiye → Alexandria (Mısır)', r20:600, r40:900, r40hc:950, tt:4, via:'Direkt', carrier:'Arkas / MSC', note:'Kısa rota' },
+  { pol:'TR', pod:'MA', route:'Türkiye → Casablanca (Fas)', r20:900, r40:1400, r40hc:1500, tt:10, via:'Tanger Med', carrier:'CMA CGM / Arkas', note:'' },
+  { pol:'TR', pod:'TN', route:'Türkiye → Tunus (Tunus)', r20:700, r40:1100, r40hc:1150, tt:6, via:'Direkt', carrier:'MSC / Arkas', note:'' },
+  { pol:'TR', pod:'LY', route:'Türkiye → Misrata/Tripoli (Libya)', r20:750, r40:1200, r40hc:1250, tt:5, via:'Direkt', carrier:'Arkas', note:'Politik risk' },
+  { pol:'TR', pod:'DZ', route:'Türkiye → Oran/Cezayir (Cezayir)', r20:850, r40:1350, r40hc:1400, tt:8, via:'Direkt', carrier:'CMA CGM', note:'' },
+  // Türkiye → Orta Doğu / Körfez
+  { pol:'TR', pod:'AE', route:'Türkiye → Jebel Ali (Dubai)', r20:700, r40:1050, r40hc:1100, tt:14, via:'Süveyş', carrier:'MSC / Maersk', note:'' },
+  { pol:'TR', pod:'SA', route:'Türkiye → Jeddah (Suudi Arabistan)', r20:600, r40:950, r40hc:1000, tt:10, via:'Süveyş', carrier:'MSC', note:'' },
+  { pol:'TR', pod:'IQ', route:'Türkiye → Umm Qasr (Irak)', r20:650, r40:1000, r40hc:1050, tt:12, via:'Süveyş', carrier:'MSC', note:'' },
+  { pol:'TR', pod:'QA', route:'Türkiye → Doha (Katar)', r20:720, r40:1100, r40hc:1150, tt:15, via:'Süveyş', carrier:'CMA CGM', note:'' },
+  { pol:'TR', pod:'KW', route:'Türkiye → Shuwaikh (Kuveyt)', r20:700, r40:1080, r40hc:1130, tt:13, via:'Süveyş', carrier:'MSC', note:'' },
+  { pol:'TR', pod:'OM', route:'Türkiye → Sohar/Muscat (Umman)', r20:850, r40:1300, r40hc:1350, tt:16, via:'Süveyş', carrier:'MSC / ONE', note:'' },
+  // Türkiye → Asya
+  { pol:'TR', pod:'CN', route:'Türkiye → Shanghai (Çin)', r20:1600, r40:2500, r40hc:2600, tt:32, via:'Süveyş', carrier:'COSCO / Evergreen', note:'' },
+  { pol:'TR', pod:'CN2', route:'Türkiye → Ningbo (Çin)', r20:1650, r40:2550, r40hc:2650, tt:33, via:'Süveyş', carrier:'COSCO / MSC', note:'' },
+  { pol:'TR', pod:'CN3', route:'Türkiye → Qingdao (Çin)', r20:1700, r40:2600, r40hc:2700, tt:34, via:'Süveyş', carrier:'COSCO', note:'' },
+  { pol:'TR', pod:'IN', route:'Türkiye → Mumbai/JNPT (Hindistan)', r20:900, r40:1400, r40hc:1450, tt:18, via:'Süveyş', carrier:'MSC / ONE', note:'' },
+  { pol:'TR', pod:'SG', route:'Türkiye → Singapore', r20:1300, r40:2000, r40hc:2100, tt:25, via:'Süveyş', carrier:'Evergreen / ONE', note:'' },
+  { pol:'TR', pod:'JP', route:'Türkiye → Yokohama (Japonya)', r20:2000, r40:3100, r40hc:3200, tt:38, via:'Süveyş', carrier:'ONE / Evergreen', note:'' },
+  { pol:'TR', pod:'KR', route:'Türkiye → Busan (Güney Kore)', r20:1900, r40:3000, r40hc:3100, tt:36, via:'Süveyş', carrier:'HMM / ONE', note:'' },
+  { pol:'TR', pod:'VN', route:'Türkiye → Ho Chi Minh (Vietnam)', r20:1500, r40:2300, r40hc:2400, tt:30, via:'Süveyş', carrier:'Evergreen', note:'' },
+  // Türkiye → Avrupa
+  { pol:'TR', pod:'NL', route:'Türkiye → Rotterdam (Hollanda)', r20:500, r40:750, r40hc:800, tt:12, via:'Direkt', carrier:'MSC / Maersk', note:'' },
+  { pol:'TR', pod:'DE', route:'Türkiye → Hamburg (Almanya)', r20:550, r40:800, r40hc:850, tt:14, via:'Direkt', carrier:'MSC / Hapag', note:'' },
+  { pol:'TR', pod:'BE', route:'Türkiye → Antwerp (Belçika)', r20:520, r40:780, r40hc:820, tt:12, via:'Direkt', carrier:'MSC', note:'' },
+  { pol:'TR', pod:'GB', route:'Türkiye → Felixstowe (İngiltere)', r20:600, r40:900, r40hc:950, tt:14, via:'Direkt', carrier:'Maersk / MSC', note:'' },
+  { pol:'TR', pod:'IT', route:'Türkiye → Genova (İtalya)', r20:400, r40:620, r40hc:650, tt:8, via:'Direkt', carrier:'MSC / Arkas', note:'' },
+  { pol:'TR', pod:'ES', route:'Türkiye → Valencia (İspanya)', r20:450, r40:700, r40hc:730, tt:9, via:'Direkt', carrier:'MSC', note:'' },
+  { pol:'TR', pod:'FR', route:'Türkiye → Marseille Fos (Fransa)', r20:430, r40:680, r40hc:710, tt:8, via:'Direkt', carrier:'CMA CGM', note:'' },
+  { pol:'TR', pod:'GR', route:'Türkiye → Piraeus (Yunanistan)', r20:250, r40:400, r40hc:420, tt:3, via:'Direkt', carrier:'MSC / Arkas', note:'Kısa rota' },
+  // Türkiye → Amerika
+  { pol:'TR', pod:'US-E', route:'Türkiye → New York/Newark (ABD Doğu)', r20:2200, r40:3400, r40hc:3500, tt:20, via:'Azores', carrier:'MSC / Maersk', note:'' },
+  { pol:'TR', pod:'US-W', route:'Türkiye → Los Angeles (ABD Batı)', r20:3500, r40:5400, r40hc:5500, tt:35, via:'Suez/Panama', carrier:'MSC / Maersk', note:'' },
+  { pol:'TR', pod:'BR', route:'Türkiye → Santos (Brezilya)', r20:2500, r40:3900, r40hc:4000, tt:25, via:'Direkt', carrier:'CMA CGM / MSC', note:'' },
+  // Türkiye iç hat (karayolu referans)
+  { pol:'IST', pod:'MER', route:'Istanbul → Mersin (Karayolu)', r20:8000, r40:12000, r40hc:13000, tt:1, via:'E90', carrier:'Karayolu', note:'TRY/araç', currency:'TRY' },
+  { pol:'IST', pod:'IZM', route:'Istanbul → İzmir (Karayolu)', r20:4500, r40:7000, r40hc:7500, tt:1, via:'O-3', carrier:'Karayolu', note:'TRY/araç', currency:'TRY' },
+  { pol:'IST', pod:'ANK', route:'Istanbul → Ankara (Karayolu)', r20:3500, r40:5500, r40hc:6000, tt:1, via:'TEM', carrier:'Karayolu', note:'TRY/araç', currency:'TRY' },
+  { pol:'IST', pod:'BUR', route:'Istanbul → Bursa (Karayolu)', r20:2000, r40:3200, r40hc:3500, tt:1, via:'TEM', carrier:'Karayolu', note:'TRY/araç', currency:'TRY' },
+  { pol:'MER', pod:'ISK', route:'Mersin → İskenderun (Karayolu)', r20:1500, r40:2400, r40hc:2500, tt:1, via:'O-52', carrier:'Karayolu', note:'TRY/araç', currency:'TRY' },
+];
+
+// Surcharge database 2025/2026
+const SURCHARGES = {
+  BAF_PERCENT:   { label:'BAF (Yakıt)', val:12, note:'Ocak 2026, spot' },
+  PSS_LOW:       { label:'PSS Düşük Sezon', val:0, note:'Aktif değil' },
+  PSS_HIGH:      { label:'PSS Yüksek Sezon', val:200, note:'USD/40HC' },
+  EBS:           { label:'EBS (Doğu Afrika)', val:150, note:'USD/40' },
+  WRS:           { label:'WRS (Kızıldeniz)', val:300, note:'USD/40, aktif' },
+  ISPS:          { label:'ISPS (Güvenlik)', val:25, note:'USD/BL' },
+  AMS:           { label:'AMS (ABD Varış)', val:25, note:'USD/BL' },
+  ENS:           { label:'ENS (AB Varış)', val:20, note:'USD/BL' },
+  CAF_PERCENT:   { label:'CAF (Kur)', val:8, note:'% bazlı' },
+  GDSS:          { label:'GDSS (G.Afrika)', val:200, note:'USD/40' },
+  IMO_SUR:       { label:'IMO/DG Surcharge', val:400, note:'USD/40HC' },
+  REEFER_PLUG:   { label:'Reefer Plug (liman)', val:350, note:'USD/unit' },
+  THC_TR:        { label:'THC Türkiye', val:180, note:'USD/20DC' },
+  THC_DEST_AVG:  { label:'THC Varış (ort.)', val:220, note:'USD/20DC' },
+  BL_FEE:        { label:'B/L Ücreti', val:60, note:'USD/BL' },
+  CONGESTION:    { label:'Kongestion (NG/AO)', val:350, note:'USD/40, varışa göre' },
+};
+
+// Truck rates Turkey 2025 (per km, TRY)
+const TRUCK_RATES_TRY = {
+  'TIR/Römork (33 ton)':   { per_km: 18, fixed_load: 800, fixed_unload: 800, driver_day: 1200 },
+  'Tenteli Kamyon (20 ton)':{ per_km: 14, fixed_load: 600, fixed_unload: 600, driver_day: 1000 },
+  'Kasalı Kamyon (10 ton)':{ per_km: 10, fixed_load: 400, fixed_unload: 400, driver_day: 800 },
+  'Frigorifik':             { per_km: 22, fixed_load: 900, fixed_unload: 900, driver_day: 1400 },
+  'Konteyner Taşıyıcı':    { per_km: 20, fixed_load: 1000, fixed_unload: 1000, driver_day: 1300 },
+  'Silo/Tanker':            { per_km: 19, fixed_load: 700, fixed_unload: 700, driver_day: 1200 },
+  'Lowbed':                 { per_km: 25, fixed_load: 1500, fixed_unload: 1500, driver_day: 1600 },
+  'Midibüs/Minivan':        { per_km: 6,  fixed_load: 200, fixed_unload: 200, driver_day: 600 },
+};
+
+// ===================== PRICE CALCULATOR =====================
+let tripWeekOffset = 0;
+
+function pcSuggestPort(field, val) {
+  const sugId = 'pc_' + field + '_sug';
+  const el = document.getElementById(sugId);
+  if (!el) return;
+  if (!val || val.length < 2) { el.style.display='none'; return; }
+  const q = val.toLowerCase();
+  const matches = [...new Set(FREIGHT_RATES_DB.map(r => field==='pol' ? r.pol : r.pod))]
+    .concat(FREIGHT_RATES_DB.map(r => r.route.split(' → ')[field==='pol'?0:1]))
+    .filter((v,i,a) => a.indexOf(v)===i && v.toLowerCase().includes(q))
+    .slice(0,8);
+  if (!matches.length) { el.style.display='none'; return; }
+  el.style.display='block';
+  el.innerHTML = matches.map(m => `<div onclick="document.getElementById('pc_${field}').value='${m}';document.getElementById('pc_${field}_sug').style.display='none';renderPriceCalc()" style="padding:8px 12px;cursor:pointer;font-size:13px;color:var(--text2);border-bottom:1px solid var(--border)" onmouseover="this.style.background='var(--navy3)'" onmouseout="this.style.background='transparent'">${m}</div>`).join('');
+}
+
+function findRoutes(pol, pod) {
+  const pq = (pol||'').toLowerCase();
+  const dq = (pod||'').toLowerCase();
+  return FREIGHT_RATES_DB.filter(r => {
+    const rPol = r.pol.toLowerCase();
+    const rPod = r.pod.toLowerCase();
+    const rRoute = r.route.toLowerCase();
+    return (rPol.includes(pq) || rRoute.split('→')[0].includes(pq)) &&
+           (rPod.includes(dq) || rRoute.split('→')[1]?.includes(dq));
+  });
+}
+
+function renderPriceCalc() {
+  const pol = (document.getElementById('pc_pol')?.value||'').trim();
+  const pod = (document.getElementById('pc_pod')?.value||'').trim();
+  const mode = document.getElementById('pc_mode')?.value || 'fcl';
+  const ctype = document.getElementById('pc_ctype')?.value || '40HC';
+  const qty = parseInt(document.getElementById('pc_qty')?.value)||1;
+  const kg = parseFloat(document.getElementById('pc_kg')?.value)||0;
+  const cbm = parseFloat(document.getElementById('pc_cbm')?.value)||0;
+  const margin = parseFloat(document.getElementById('pc_margin')?.value)||15;
+  const isIMO = document.getElementById('pc_imo')?.value === 'yes';
+  const cargoValue = parseFloat(document.getElementById('pc_value')?.value)||0;
+  const inco = document.getElementById('pc_inco')?.value||'FOB';
+  const km = parseFloat(document.getElementById('pc_km')?.value)||0;
+  const trtype = document.getElementById('pc_trtype')?.value||'TIR/Römork (33 ton)';
+
+  // Show/hide mode-specific fields
+  ['pc_fcl_fields','pc_lcl_fields','pc_truck_fields'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  if (mode==='fcl') document.getElementById('pc_fcl_fields').style.display='';
+  if (mode==='lcl') document.getElementById('pc_lcl_fields').style.display='';
+  if (mode==='truck') document.getElementById('pc_truck_fields').style.display='';
+
+  const resultsEl = document.getElementById('pcResults');
+  if (!resultsEl) return;
+  if (!pol || !pod) {
+    resultsEl.innerHTML = `<div class="card" style="text-align:center;padding:40px"><div style="font-size:48px;margin-bottom:12px">🧮</div><div style="font-size:16px;font-weight:600;color:var(--text2)">Çıkış ve varış noktasını girin</div></div>`;
+    renderMarketRates();
+    return;
+  }
+
+  if (mode === 'truck') {
+    renderTruckCalc(pol, pod, km, trtype, kg, cbm, margin, cargoValue);
+    return;
+  }
+
+  const routes = findRoutes(pol, pod);
+  if (!routes.length) {
+    resultsEl.innerHTML = `<div class="card"><div style="text-align:center;padding:30px"><div style="font-size:36px;margin-bottom:10px">🔍</div>
+      <div style="font-weight:600;font-size:14px;color:var(--text2)">Rota bulunamadı: ${pol} → ${pod}</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:6px">Farklı liman adları deneyin veya yakın rotaları inceleyin</div>
+      </div></div>`;
+    renderMarketRates();
+    return;
+  }
+
+  let html = '';
+  routes.forEach((r, idx) => {
+    const basePrice = ctype==='20DC'?r.r20 : ctype==='40DC'?r.r40 : (r.r40hc||r.r40*1.05);
+    const currency = r.currency || 'USD';
+
+    // Calculate surcharges
+    let surcharges = [];
+    const baf = Math.round(basePrice * SURCHARGES.BAF_PERCENT.val / 100);
+    surcharges.push({name:'BAF', usd: baf});
+    surcharges.push({name:'THC (POL)', usd: SURCHARGES.THC_TR.val});
+    surcharges.push({name:'THC (POD)', usd: SURCHARGES.THC_DEST_AVG.val});
+    surcharges.push({name:'B/L Ücreti', usd: SURCHARGES.BL_FEE.val});
+    if (isIMO) surcharges.push({name:'IMO/DG Surcharge', usd: SURCHARGES.IMO_SUR.val});
+    if (r.route.includes('Kızıldeniz') || r.route.includes('Doğu Afrika')) surcharges.push({name:'WRS', usd: SURCHARGES.WRS.val});
+    if (r.route.includes('Nijerya') || r.route.includes('Angola')) surcharges.push({name:'Kongestion', usd: SURCHARGES.CONGESTION.val});
+    if (r.pod === 'ZA' || r.pod === 'ZA2') surcharges.push({name:'GDSS', usd: SURCHARGES.GDSS.val});
+    if (r.pod === 'US-E' || r.pod === 'US-W') surcharges.push({name:'AMS', usd: SURCHARGES.AMS.val});
+    const surTotal = surcharges.reduce((a,s)=>a+s.usd,0);
+    const allInOne = basePrice + surTotal;
+    const allInTotal = allInOne * qty;
+    const withMargin = Math.round(allInOne * (1 + margin/100));
+    const withMarginTotal = withMargin * qty;
+    const profit = (withMargin - allInOne) * qty;
+    // Insurance estimate: 0.3% of cargo value
+    const insurance = cargoValue ? Math.round(cargoValue * 0.003) : null;
+
+    html += `<div class="card" style="margin-bottom:14px;border-left:3px solid var(--accent)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+        <div>
+          <div style="font-weight:700;font-size:15px;color:var(--text)">${r.route}</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:3px">Aktarma: ${r.via} · TT: ${r.tt} gün · ${r.carrier}${r.note?' · '+r.note:''}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--text3)">All-in (${ctype} x${qty})</div>
+          <div style="font-size:24px;font-weight:800;color:var(--accent);font-family:'JetBrains Mono',monospace">${currency} ${allInTotal.toLocaleString()}</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
+        <div style="background:var(--navy2);border-radius:8px;padding:12px;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Baz Navlun</div>
+          <div style="font-size:18px;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace">${currency} ${basePrice.toLocaleString()}</div>
+          <div style="font-size:11px;color:var(--text3)">/ ${ctype}</div>
+        </div>
+        <div style="background:var(--navy2);border-radius:8px;padding:12px;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Toplam Surcharge</div>
+          <div style="font-size:18px;font-weight:700;color:var(--gold);font-family:'JetBrains Mono',monospace">${currency} ${surTotal.toLocaleString()}</div>
+          <div style="font-size:11px;color:var(--text3)">${surcharges.map(s=>s.name).join(', ')}</div>
+        </div>
+        <div style="background:rgba(0,212,255,.08);border-radius:8px;padding:12px;border:1px solid rgba(0,212,255,.2)">
+          <div style="font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">%${margin} Marjla Satış Fiyatı</div>
+          <div style="font-size:18px;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace">${currency} ${withMarginTotal.toLocaleString()}</div>
+          <div style="font-size:11px;color:var(--green)">Kar: ${currency} ${profit.toLocaleString()}</div>
+        </div>
+      </div>
+      <!-- Surcharge breakdown -->
+      <details style="margin-bottom:10px">
+        <summary style="cursor:pointer;font-size:12px;color:var(--text3);padding:6px 0">📋 Surcharge detayı</summary>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px">
+          <div style="display:flex;justify-content:space-between;padding:5px 8px;background:var(--navy2);border-radius:4px;font-size:12px">
+            <span style="color:var(--text3)">Baz Navlun</span><span style="font-family:'JetBrains Mono',monospace">${currency} ${basePrice.toLocaleString()}</span>
+          </div>
+          ${surcharges.map(s=>`<div style="display:flex;justify-content:space-between;padding:5px 8px;background:var(--navy2);border-radius:4px;font-size:12px">
+            <span style="color:var(--text3)">${s.name}</span><span style="font-family:'JetBrains Mono',monospace">${currency} ${s.usd.toLocaleString()}</span>
+          </div>`).join('')}
+          ${insurance?`<div style="display:flex;justify-content:space-between;padding:5px 8px;background:var(--gnb);border-radius:4px;font-size:12px;grid-column:span 2">
+            <span style="color:var(--gn)">🛡️ Kargo Sigortası (tahmini)</span><span style="font-family:'JetBrains Mono',monospace;color:var(--gn)">USD ${insurance.toLocaleString()}</span>
+          </div>`:''}
+        </div>
+      </details>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="createRFQFromCalc('${r.route}','${r.via}',${withMargin})">📨 RFQ Oluştur</button>
+        <button class="btn btn-ghost btn-sm" onclick="createQuoteFromCalc('${r.route}',${withMargin},'${currency}',${r.tt})">📋 Teklif Oluştur</button>
+      </div>
+    </div>`;
+  });
+
+  resultsEl.innerHTML = html;
+  renderMarketRates();
+}
+
+function renderTruckCalc(pol, pod, km, trtype, kg, cbm, margin, cargoValue) {
+  const resultsEl = document.getElementById('pcResults');
+  const rates = TRUCK_RATES_TRY[trtype] || TRUCK_RATES_TRY['Tenteli Kamyon (20 ton)'];
+  const kmCost = km ? Math.round(km * rates.per_km) : 0;
+  const totalCost = kmCost + rates.fixed_load + rates.fixed_unload;
+  const insurance = cargoValue ? Math.round(cargoValue * 0.003 * 30) : 0; // TRY
+  const withMargin = Math.round(totalCost * (1 + margin/100));
+  const profit = withMargin - totalCost;
+  const perKg = kg ? Math.round(withMargin / kg * 10) / 10 : null;
+  const perCbm = cbm ? Math.round(withMargin / cbm) : null;
+
+  resultsEl.innerHTML = `<div class="card" style="border-left:3px solid var(--gold)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+      <div>
+        <div style="font-weight:700;font-size:15px">${pol} → ${pod}</div>
+        <div style="font-size:12px;color:var(--text3)">${trtype} · ${km?km+' km':'mesafe girilmedi'}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;color:var(--text3)">Tahmini Toplam</div>
+        <div style="font-size:24px;font-weight:800;color:var(--gold);font-family:'JetBrains Mono',monospace">₺${withMargin.toLocaleString()}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+      <div style="background:var(--navy2);border-radius:8px;padding:12px">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px">KM Maliyeti</div>
+        <div style="font-size:16px;font-weight:700">₺${kmCost.toLocaleString()}</div>
+        <div style="font-size:11px;color:var(--text3)">${km} km × ₺${rates.per_km}/km</div>
+      </div>
+      <div style="background:var(--navy2);border-radius:8px;padding:12px">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px">Yükleme/Boşaltma</div>
+        <div style="font-size:16px;font-weight:700">₺${(rates.fixed_load+rates.fixed_unload).toLocaleString()}</div>
+        <div style="font-size:11px;color:var(--text3)">Sabit maliyet</div>
+      </div>
+      <div style="background:rgba(0,212,255,.08);border-radius:8px;padding:12px;border:1px solid rgba(0,212,255,.2)">
+        <div style="font-size:10px;color:var(--accent);margin-bottom:4px">Satış Fiyatı (%${margin} marj)</div>
+        <div style="font-size:16px;font-weight:700;color:var(--accent)">₺${withMargin.toLocaleString()}</div>
+        <div style="font-size:11px;color:var(--green)">Kar: ₺${profit.toLocaleString()}</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--text3)">
+      ${perKg?`<span style="background:var(--navy2);padding:4px 10px;border-radius:20px">₺${perKg}/kg</span>`:''}
+      ${perCbm?`<span style="background:var(--navy2);padding:4px 10px;border-radius:20px">₺${perCbm}/m³</span>`:''}
+      ${insurance?`<span style="background:var(--gnb);color:var(--gn);padding:4px 10px;border-radius:20px">🛡️ Sigorta tahmini: ₺${insurance.toLocaleString()}</span>`:''}
+    </div>
+  </div>`;
+}
+
+function renderMarketRates() {
+  const el = document.getElementById('marketRatesRef');
+  if (!el) return;
+  // Show top Turkish origin routes
+  const trRoutes = FREIGHT_RATES_DB.filter(r => r.pol === 'TR').slice(0, 20);
+  el.innerHTML = `<div style="overflow-x:auto"><table>
+    <thead><tr><th>Rota</th><th>20DC</th><th>40HC</th><th>TT</th><th>Via</th><th>Taşıyıcı</th><th>Not</th></tr></thead>
+    <tbody>${trRoutes.map(r=>`<tr>
+      <td style="font-size:12px;font-weight:600">${r.route}</td>
+      <td class="mono" style="color:var(--accent)">$${r.r20.toLocaleString()}</td>
+      <td class="mono" style="color:var(--gold)">$${(r.r40hc||r.r40).toLocaleString()}</td>
+      <td style="font-size:11px">${r.tt}g</td>
+      <td style="font-size:11px;color:var(--text3)">${r.via}</td>
+      <td style="font-size:11px;color:var(--text3)">${r.carrier}</td>
+      <td style="font-size:11px;color:${r.note?'var(--gold)':'var(--text3)'}">${r.note||'—'}</td>
+    </tr>`).join('')}
+    </tbody>
+  </table></div>
+  <div style="font-size:11px;color:var(--text3);margin-top:10px;padding:8px;background:var(--navy2);border-radius:6px">
+    💡 Fiyatlar Ocak 2026 spot piyasa referans değerleridir. Gerçek fiyatlar sezon, kapasite ve armatör politikasına göre değişir. 
+    BAF, PSS ve diğer surchargeler dahil değildir. Kızıldeniz güzergahında WRS (%15-25) eklenebilir.
+  </div>`;
+}
+
+function createRFQFromCalc(route, via, price) {
+  showPage('rfq');
+  setTimeout(() => {
+    const parts = route.split(' → ');
+    if (parts[0]) { const el = document.getElementById('rfqPOL'); if(el) el.value = parts[0].replace('Türkiye','Mersin, TR'); }
+    if (parts[1]) { const el = document.getElementById('rfqPOD'); if(el) el.value = parts[1]; }
+    toast('💡 RFQ', 'Tahmini fiyat: $'+price+' ('+route+')', 'info');
+  }, 300);
+}
+
+function createQuoteFromCalc(route, price, currency, tt) {
+  showPage('newquote');
+  setTimeout(() => {
+    const parts = route.split(' → ');
+    if (parts[0]) { const el = document.getElementById('qPOL'); if(el) el.value = parts[0].replace('Türkiye','Mersin, TR'); }
+    if (parts[1]) { const el = document.getElementById('qPOD'); if(el) el.value = parts[1]; }
+    const ttEl = document.getElementById('qTT'); if(ttEl) ttEl.value = tt;
+    document.querySelectorAll('.pr-amount').forEach((el,i) => { if(i===0) el.value = price; });
+    updateTotal();
+    toast('💡 Teklif', 'Hesaplanan fiyat yüklendi: '+currency+' '+price, 'success');
+  }, 300);
+}
+
+// ===================== OPERATIONS =====================
+const OP_SCHEMA = `CREATE TABLE IF NOT EXISTS operations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  dosya_no TEXT, tip TEXT, musteri TEXT, mod TEXT,
+  cont_no TEXT, armator TEXT, forwarder TEXT,
+  pol TEXT, pod TEXT, etd TEXT, eta TEXT, atd TEXT, ata TEXT,
+  kargo TEXT, hs TEXT, kg REAL, cbm REAL, inco TEXT, durum TEXT,
+  gumrukcu TEXT, beyanname TEXT, gtip TEXT, matrah REAL, vergi REAL, kdv REAL,
+  docs TEXT, costs TEXT, notlar TEXT,
+  created_at TEXT DEFAULT (datetime('now'))
+)`;
+
+function ensureOpsTable() { try { db.run(OP_SCHEMA); } catch(e) {} }
+
+function generateOpsNo() {
+  const y = new Date().getFullYear();
+  try { ensureOpsTable(); const r = query('SELECT COUNT(*) as c FROM operations'); return 'OPS-'+y+'-'+String((r[0]?.c||0)+1).padStart(3,'0'); } catch(e) { return 'OPS-'+y+'-001'; }
+}
+
+function addOpCostRow() {
+  const container = document.getElementById('opCostRows');
+  if (!container) return;
+  const idx = container.children.length;
+  const div = document.createElement('div');
+  div.className = 'form-grid';
+  div.style.cssText = 'align-items:end;border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:12px';
+  div.innerHTML = `
+    <div class="form-group"><label>Masraf Kalemi</label><input class="op-cost-item" placeholder="Navlun, THC, B/L..."></div>
+    <div class="form-group"><label>Tutar</label><input type="number" class="op-cost-amount" placeholder="0" oninput="updateOpTotal()"></div>
+    <div class="form-group"><label>Para Birimi</label><select class="op-cost-curr"><option>USD</option><option>EUR</option><option>TRY</option></select></div>
+    <div class="form-group"><label>Fatura No</label><input class="op-cost-inv" placeholder="INV-001"></div>
+    <div style="padding-bottom:4px"><button class="btn btn-danger btn-sm" onclick="this.closest('.form-grid').remove();updateOpTotal()">🗑</button></div>`;
+  container.appendChild(div);
+}
+
+function updateOpTotal() {
+  const amounts = Array.from(document.querySelectorAll('.op-cost-amount')).map(i=>parseFloat(i.value)||0);
+  const total = amounts.reduce((a,b)=>a+b,0);
+  const el = document.getElementById('opTotalCost');
+  if (el) el.textContent = total.toLocaleString() + ' (karışık para birimleri)';
+}
+
+function saveOperation() {
+  ensureOpsTable();
+  const id = document.getElementById('editOpId').value;
+  const dosya = document.getElementById('opDosyaNo').value || generateOpsNo();
+  const costs = Array.from(document.querySelectorAll('#opCostRows .op-cost-item')).map((el,i) => ({
+    item: el.value,
+    amount: parseFloat(document.querySelectorAll('.op-cost-amount')[i]?.value)||0,
+    curr: document.querySelectorAll('.op-cost-curr')[i]?.value||'USD',
+    inv: document.querySelectorAll('.op-cost-inv')[i]?.value||''
+  }));
+  const vals = [
+    dosya, document.getElementById('opTip').value, document.getElementById('opMusteri').value,
+    document.getElementById('opMod').value, document.getElementById('opContNo').value,
+    document.getElementById('opArmator').value, document.getElementById('opForwarder').value,
+    document.getElementById('opPOL').value, document.getElementById('opPOD').value,
+    document.getElementById('opETD').value||null, document.getElementById('opETA').value||null,
+    document.getElementById('opATD').value||null, document.getElementById('opATA').value||null,
+    document.getElementById('opKargo').value, document.getElementById('opHS').value,
+    parseFloat(document.getElementById('opKg').value)||null, parseFloat(document.getElementById('opCbm').value)||null,
+    document.getElementById('opInco').value, document.getElementById('opDurum').value,
+    document.getElementById('opGumrukcu').value, document.getElementById('opBeyanname').value,
+    document.getElementById('opGtip').value, parseFloat(document.getElementById('opMatrah').value)||null,
+    parseFloat(document.getElementById('opGumrukVergi').value)||null, parseFloat(document.getElementById('opKdv').value)||null,
+    '[]', JSON.stringify(costs), document.getElementById('opNot').value
+  ];
+  if (!vals[2]) { toast('Hata','Müşteri adı zorunlu','danger'); return; }
+  if (id) {
+    db.run(`UPDATE operations SET dosya_no=?,tip=?,musteri=?,mod=?,cont_no=?,armator=?,forwarder=?,pol=?,pod=?,etd=?,eta=?,atd=?,ata=?,kargo=?,hs=?,kg=?,cbm=?,inco=?,durum=?,gumrukcu=?,beyanname=?,gtip=?,matrah=?,vergi=?,kdv=?,docs=?,costs=?,notlar=? WHERE id=?`, [...vals,id]);
+    toast('Güncellendi','Operasyon güncellendi','success');
+  } else {
+    db.run(`INSERT INTO operations (dosya_no,tip,musteri,mod,cont_no,armator,forwarder,pol,pod,etd,eta,atd,ata,kargo,hs,kg,cbm,inco,durum,gumrukcu,beyanname,gtip,matrah,vergi,kdv,docs,costs,notlar) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, vals);
+    auditLog('add','operations',dosya);
+    toast('Eklendi','Operasyon açıldı','success');
+  }
+  saveDB(); closeModal('operationModal'); renderOperations();
+}
+
+function renderOperations() {
+  ensureOpsTable();
+  const search = (document.getElementById('opsSearch')?.value||'').toLowerCase();
+  const typeF = document.getElementById('opsTypeFilter')?.value||'';
+  const statusF = document.getElementById('opsStatusFilter')?.value||'';
+  let ops = query('SELECT * FROM operations ORDER BY id DESC');
+  if (search) ops = ops.filter(o=>(o.dosya_no+o.musteri+o.cont_no+o.pol+o.pod).toLowerCase().includes(search));
+  if (typeF) ops = ops.filter(o=>o.tip===typeF);
+  if (statusF) ops = ops.filter(o=>o.durum===statusF);
+
+  const statsEl = document.getElementById('opsStats');
+  if (statsEl) {
+    const counts = {total:ops.length, acik:ops.filter(o=>o.durum==='Açık').length, transit:ops.filter(o=>o.durum==='Transit').length, gumruk:ops.filter(o=>o.durum==='Gümrük').length};
+    statsEl.innerHTML = [
+      {l:'Toplam Dosya',v:counts.total,c:'var(--accent)'},{l:'Açık',v:counts.acik,c:'var(--text)'},
+      {l:'Transit',v:counts.transit,c:'var(--gold)'},{l:'Gümrükte',v:counts.gumruk,c:'var(--red)'},
+    ].map(s=>`<div class="stat-card blue"><div class="stat-label">${s.l}</div><div class="stat-value" style="color:${s.c}">${s.v}</div></div>`).join('');
+  }
+
+  const tbody = document.getElementById('operationsTable');
+  if (!tbody) return;
+  const statusColor = {Açık:'var(--accent)',Yükleme:'var(--gold)',Transit:'var(--bl)',Gümrük:'var(--red)',Teslim:'var(--gn)','Teslim Edildi':'var(--green)',Kapandı:'var(--text3)'};
+
+  tbody.innerHTML = ops.length === 0
+    ? `<tr><td colspan="11"><div class="empty-state"><div class="empty-state-icon">⚙️</div><div class="empty-state-title">Operasyon bulunamadı</div></div></td></tr>`
+    : ops.map(o => {
+        const costs = JSON.parse(o.costs||'[]');
+        const totalCost = costs.reduce((a,c)=>a+c.amount,0);
+        const docStatus = o.gumrukcu ? '✅ GM Atandı' : '⏳ Bekliyor';
+        return `<tr ondblclick="editOperation(${o.id})" style="cursor:pointer">
+          <td class="mono" style="color:var(--accent);font-weight:700">${o.dosya_no||'—'}</td>
+          <td><span class="tag">${o.tip||'—'}</span></td>
+          <td style="font-weight:600">${o.musteri||'—'}</td>
+          <td class="mono" style="font-size:11px">${o.cont_no||'—'}</td>
+          <td style="font-size:11px">${o.pol||'—'} → ${o.pod||'—'}</td>
+          <td class="mono" style="font-size:11px">${o.etd||'—'}</td>
+          <td class="mono" style="font-size:11px">${o.eta||'—'}</td>
+          <td style="font-size:11px;color:${o.beyanname?'var(--green)':'var(--text3)'}">${docStatus}</td>
+          <td style="font-size:11px;color:${o.beyanname?'var(--green)':'var(--text3)'}">${o.beyanname||'—'}</td>
+          <td><span class="status" style="background:${statusColor[o.durum]||'var(--text3)'}22;color:${statusColor[o.durum]||'var(--text3)'}">${o.durum||'—'}</span></td>
+          <td><div style="display:flex;gap:4px">
+            <button class="btn btn-ghost btn-sm" onclick="editOperation(${o.id})">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="if(confirm('Sil?')){db.run('DELETE FROM operations WHERE id=?',[${o.id}]);saveDB();renderOperations();}">🗑</button>
+          </div></td>
+        </tr>`;
+      }).join('');
+}
+
+function editOperation(id) {
+  ensureOpsTable();
+  const o = query('SELECT * FROM operations WHERE id=?',[id])[0];
+  if (!o) return;
+  document.getElementById('editOpId').value = id;
+  document.getElementById('opModalTitle').textContent = 'Operasyon Düzenle — ' + o.dosya_no;
+  const fields = {opDosyaNo:'dosya_no',opTip:'tip',opMusteri:'musteri',opMod:'mod',opContNo:'cont_no',
+    opArmator:'armator',opForwarder:'forwarder',opPOL:'pol',opPOD:'pod',opETD:'etd',opETA:'eta',
+    opATD:'atd',opATA:'ata',opKargo:'kargo',opHS:'hs',opKg:'kg',opCbm:'cbm',opInco:'inco',opDurum:'durum',
+    opGumrukcu:'gumrukcu',opBeyanname:'beyanname',opGtip:'gtip',opMatrah:'matrah',opGumrukVergi:'vergi',opKdv:'kdv',opNot:'notlar'};
+  Object.entries(fields).forEach(([elId, key]) => { const el=document.getElementById(elId); if(el) el.value=o[key]||''; });
+  // Load costs
+  const costContainer = document.getElementById('opCostRows');
+  if (costContainer) { costContainer.innerHTML = ''; try { JSON.parse(o.costs||'[]').forEach(()=>addOpCostRow()); } catch(e) {} }
+  openModal('operationModal');
+}
+
+function exportOperationsCSV() {
+  ensureOpsTable();
+  const ops = query('SELECT * FROM operations ORDER BY id DESC');
+  exportCSV(ops.map(o=>({'Dosya No':o.dosya_no,'Tip':o.tip,'Müşteri':o.musteri,'Mod':o.mod,'Kont No':o.cont_no,'POL':o.pol,'POD':o.pod,'ETD':o.etd,'ETA':o.eta,'Durum':o.durum,'Gümrükçü':o.gumrukcu,'Beyanname':o.beyanname})),
+    ['Dosya No','Tip','Müşteri','Mod','Kont No','POL','POD','ETD','ETA','Durum','Gümrükçü','Beyanname'],'Operasyonlar.csv');
+}
+
+// ===================== TRIP PLANNING =====================
+const TRIP_SCHEMA = `CREATE TABLE IF NOT EXISTS trips (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  no TEXT, arac_tip TEXT, plaka TEXT, dorse TEXT,
+  surucu TEXT, surucu_tel TEXT, surucu2 TEXT, firma TEXT,
+  musteri TEXT, kargo TEXT, cikis TEXT, varis TEXT,
+  yukleme TEXT, teslim TEXT, fiili TEXT,
+  km REAL, kg REAL, cbm REAL, ucret REAL, yakit REAL, yol REAL,
+  belge TEXT, sigorta TEXT, durum TEXT, notlar TEXT,
+  created_at TEXT DEFAULT (datetime('now'))
+)`;
+
+function ensureTripsTable() { try { db.run(TRIP_SCHEMA); } catch(e) {} }
+
+function calcTripCost() {
+  const km = parseFloat(document.getElementById('trKm')?.value)||0;
+  const ucret = parseFloat(document.getElementById('trUcret')?.value)||0;
+  const yakit = parseFloat(document.getElementById('trYakit')?.value)||0;
+  const yol = parseFloat(document.getElementById('trYol')?.value)||0;
+  const tip = document.getElementById('trAracTip')?.value||'TIR/Römork (33 ton)';
+  const rates = TRUCK_RATES_TRY[tip] || TRUCK_RATES_TRY['Tenteli Kamyon (20 ton)'];
+  const suggestedYakit = km ? Math.round(km * 0.35 * 30) : 0; // 35L/100km avg, ₺30/L
+  const suggestedUcret = km ? Math.round(km * rates.per_km) : 0;
+  const toplam = ucret + yakit + yol;
+  const el = document.getElementById('tripCostSummary');
+  if (el) el.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div><div style="font-size:10px;color:var(--text3)">Tahmini Navlun</div><div style="font-weight:700;color:var(--accent)">₺${suggestedUcret.toLocaleString()}</div></div>
+      <div><div style="font-size:10px;color:var(--text3)">Tahmini Yakıt</div><div style="font-weight:700;color:var(--gold)">₺${suggestedYakit.toLocaleString()}</div></div>
+      <div><div style="font-size:10px;color:var(--text3)">Toplam Maliyet</div><div style="font-weight:700;color:var(--green)">₺${toplam.toLocaleString()}</div></div>
+    </div>`;
+}
+
+function saveTrip() {
+  ensureTripsTable();
+  const id = document.getElementById('editTripId').value;
+  const y = new Date().getFullYear();
+  try { const r=query('SELECT COUNT(*) as c FROM trips'); var no='SF-'+y+'-'+String((r[0]?.c||0)+1).padStart(3,'0'); } catch(e) { var no='SF-'+y+'-001'; }
+  const vals = [
+    document.getElementById('trNo').value || no,
+    document.getElementById('trAracTip').value, document.getElementById('trPlaka').value,
+    document.getElementById('trDorsePlaka').value, document.getElementById('trSurucu').value,
+    document.getElementById('trSurucuTel').value, document.getElementById('trSurucu2').value,
+    document.getElementById('trFirma').value, document.getElementById('trMusteri').value,
+    document.getElementById('trKargo').value, document.getElementById('trCikis').value,
+    document.getElementById('trVaris').value, document.getElementById('trYukleme').value||null,
+    document.getElementById('trTeslim').value||null, document.getElementById('trFiili').value||null,
+    parseFloat(document.getElementById('trKm').value)||null, parseFloat(document.getElementById('trKg').value)||null,
+    parseFloat(document.getElementById('trCbm').value)||null, parseFloat(document.getElementById('trUcret').value)||null,
+    parseFloat(document.getElementById('trYakit').value)||null, parseFloat(document.getElementById('trYol').value)||null,
+    document.getElementById('trBelge').value, document.getElementById('trSigorta').value,
+    document.getElementById('trDurum').value, document.getElementById('trNot').value
+  ];
+  if (!vals[4]) { toast('Hata','Şoför adı zorunlu','danger'); return; }
+  if (id) {
+    db.run(`UPDATE trips SET no=?,arac_tip=?,plaka=?,dorse=?,surucu=?,surucu_tel=?,surucu2=?,firma=?,musteri=?,kargo=?,cikis=?,varis=?,yukleme=?,teslim=?,fiili=?,km=?,kg=?,cbm=?,ucret=?,yakit=?,yol=?,belge=?,sigorta=?,durum=?,notlar=? WHERE id=?`,[...vals,id]);
+    toast('Güncellendi','Sefer güncellendi','success');
+  } else {
+    db.run(`INSERT INTO trips (no,arac_tip,plaka,dorse,surucu,surucu_tel,surucu2,firma,musteri,kargo,cikis,varis,yukleme,teslim,fiili,km,kg,cbm,ucret,yakit,yol,belge,sigorta,durum,notlar) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,vals);
+    toast('Eklendi','Sefer planlandı','success');
+  }
+  saveDB(); closeModal('tripModal'); renderTrips(); renderTripCalendar();
+}
+
+function renderTrips() {
+  ensureTripsTable();
+  const trips = query('SELECT * FROM trips ORDER BY yukleme DESC, id DESC');
+  const statsEl = document.getElementById('tripStats');
+  if (statsEl) {
+    const yolda = trips.filter(t=>t.durum==='Yolda').length;
+    const planli = trips.filter(t=>t.durum==='Planlandı').length;
+    const totalUcret = trips.reduce((a,t)=>a+(t.ucret||0),0);
+    const totalKm = trips.reduce((a,t)=>a+(t.km||0),0);
+    statsEl.innerHTML = [
+      {l:'Toplam Sefer',v:trips.length,c:'var(--accent)'},{l:'Yolda',v:yolda,c:'var(--gold)'},
+      {l:'Planlandı',v:planli,c:'var(--bl)'},{l:'Toplam Navlun',v:'₺'+totalUcret.toLocaleString(),c:'var(--green)'},
+      {l:'Toplam KM',v:Math.round(totalKm).toLocaleString(),c:'var(--text)'},
+    ].map(s=>`<div class="stat-card blue"><div class="stat-label">${s.l}</div><div class="stat-value" style="color:${s.c};font-size:${typeof s.v==='string'?'18':'28'}px">${s.v}</div></div>`).join('');
+  }
+  const tbody = document.getElementById('tripsTable');
+  if (!tbody) return;
+  const sc = {Planlandı:'var(--accent)',Yükleniyor:'var(--gold)',Yolda:'var(--bl)','Teslim Edildi':'var(--green)',Gecikme:'var(--red)',İptal:'var(--text3)'};
+  tbody.innerHTML = trips.length===0
+    ? `<tr><td colspan="13"><div class="empty-state"><div class="empty-state-icon">🚛</div><div class="empty-state-title">Sefer bulunamadı</div></div></td></tr>`
+    : trips.map(t=>`<tr ondblclick="editTrip(${t.id})" style="cursor:pointer">
+        <td class="mono" style="color:var(--accent);font-weight:600">${t.no||'—'}</td>
+        <td class="mono" style="color:var(--gold);font-size:11px">${t.plaka||'—'}</td>
+        <td style="font-size:12px">${t.surucu||'—'}</td>
+        <td><span class="tag" style="font-size:10px">${(t.arac_tip||'').split(' ')[0]}</span></td>
+        <td style="font-size:11px">${t.cikis||'—'}</td>
+        <td style="font-size:11px">${t.varis||'—'}</td>
+        <td class="mono" style="font-size:11px">${t.yukleme?t.yukleme.slice(0,16):'—'}</td>
+        <td class="mono" style="font-size:11px">${t.teslim?t.teslim.slice(0,16):'—'}</td>
+        <td style="font-size:11px;color:var(--text3)">${t.kargo||'—'}</td>
+        <td class="mono" style="font-size:11px">${t.km?t.km.toLocaleString()+' km':'—'}</td>
+        <td class="mono" style="color:var(--accent)">${t.ucret?'₺'+t.ucret.toLocaleString():'—'}</td>
+        <td><span class="status" style="background:${sc[t.durum]||'var(--text3)'}22;color:${sc[t.durum]||'var(--text3)'}">${t.durum||'—'}</span></td>
+        <td><div style="display:flex;gap:4px">
+          <button class="btn btn-ghost btn-sm" onclick="editTrip(${t.id})">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="if(confirm('Sil?')){db.run('DELETE FROM trips WHERE id=?',[${t.id}]);saveDB();renderTrips();renderTripCalendar();}">🗑</button>
+        </div></td>
+      </tr>`).join('');
+}
+
+function editTrip(id) {
+  ensureTripsTable();
+  const t = query('SELECT * FROM trips WHERE id=?',[id])[0];
+  if (!t) return;
+  document.getElementById('editTripId').value = id;
+  const m = {trNo:'no',trAracTip:'arac_tip',trPlaka:'plaka',trDorsePlaka:'dorse',trSurucu:'surucu',
+    trSurucuTel:'surucu_tel',trSurucu2:'surucu2',trFirma:'firma',trMusteri:'musteri',trKargo:'kargo',
+    trCikis:'cikis',trVaris:'varis',trYukleme:'yukleme',trTeslim:'teslim',trFiili:'fiili',
+    trKm:'km',trKg:'kg',trCbm:'cbm',trUcret:'ucret',trYakit:'yakit',trYol:'yol',
+    trBelge:'belge',trSigorta:'sigorta',trDurum:'durum',trNot:'notlar'};
+  Object.entries(m).forEach(([elId,key])=>{ const el=document.getElementById(elId); if(el) el.value=t[key]||''; });
+  calcTripCost();
+  openModal('tripModal');
+}
+
+function renderTripCalendar() {
+  ensureTripsTable();
+  const el = document.getElementById('tripCalendar');
+  if (!el) return;
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(weekStart.getDate() - (weekStart.getDay()+6)%7 + tripWeekOffset*7);
+  const days = Array.from({length:7},(_,i)=>{ const d=new Date(weekStart); d.setDate(d.getDate()+i); return d; });
+  const dayNames = ['Pt','Sa','Ça','Pe','Cu','Ct','Pz'];
+  const todayStr = now.toISOString().split('T')[0];
+  const trips = query('SELECT * FROM trips WHERE yukleme IS NOT NULL OR teslim IS NOT NULL ORDER BY yukleme');
+  const sc = {Planlandı:'#2563EB',Yükleniyor:'#f59e0b',Yolda:'#00d4ff','Teslim Edildi':'#10b981',Gecikme:'#ef4444'};
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border)">
+      ${days.map((d,i)=>{
+        const ds = d.toISOString().split('T')[0];
+        const isT = ds===todayStr;
+        return `<div style="padding:8px;text-align:center;background:${isT?'var(--acb)':'transparent'}">
+          <div class="mono" style="font-size:10px;color:${isT?'var(--accent)':'var(--text3)'}">${dayNames[i]}</div>
+          <div style="font-size:13px;font-weight:${isT?700:400};color:${isT?'var(--accent)':'var(--text4)'}">${d.getDate()}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);min-height:120px">
+      ${days.map(d=>{
+        const ds = d.toISOString().split('T')[0];
+        const isT = ds===todayStr;
+        const dayTrips = trips.filter(t=>{
+          const y = t.yukleme ? t.yukleme.slice(0,10) : null;
+          const tv = t.teslim ? t.teslim.slice(0,10) : null;
+          return y===ds || tv===ds;
+        });
+        return `<div style="padding:3px;border-right:1px solid var(--border);background:${isT?'rgba(0,212,255,.04)':'transparent'};min-height:120px">
+          ${dayTrips.map(t=>{
+            const isYukleme = t.yukleme&&t.yukleme.slice(0,10)===ds;
+            const color = sc[t.durum]||'var(--text3)';
+            return `<div onclick="editTrip(${t.id})" style="border-radius:3px;padding:2px 5px;font-size:10px;margin-bottom:2px;cursor:pointer;border-left:2px solid ${color};background:${color}18;color:var(--text2)" title="${t.surucu||''} | ${t.cikis||''} → ${t.varis||''}">
+              ${isYukleme?'📤':'📥'} ${t.plaka||t.no} ${t.kargo?'·'+t.kargo.slice(0,8):''}
+            </div>`;
+          }).join('')}
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// Hook new pages
+const _origShowPageOps = showPage;
+function showPage(id) {
+  _origShowPageOps(id);
+  if (id === 'operations') { ensureOpsTable(); renderOperations(); }
+  if (id === 'pricecalc') { renderMarketRates(); }
+  if (id === 'truckplan') { ensureTripsTable(); renderTrips(); renderTripCalendar(); }
+}
+
+// Also update migrateDB
+const _origMigrateDB = migrateDB;
+function migrateDB() {
+  _origMigrateDB();
+  ensureOpsTable();
+  ensureTripsTable();
 }
 
 // Keyboard shortcuts (only active when logged in)
